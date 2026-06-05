@@ -1,4 +1,4 @@
-.PHONY: help install up down logs backend test seed clean clean-all clean-ports
+.PHONY: help install up down logs backend test seed clean clean-ports build
 
 BACKEND_DIR = backend
 BACKEND_PORT = 3000
@@ -6,8 +6,6 @@ BACKEND_PORT = 3000
 GREEN  := \033[0;32m
 YELLOW := \033[0;33m
 BLUE   := \033[0;34m
-CYAN := \033[0;36m
-RED := \033[0;31m
 BOLD   := \033[1m
 NC     := \033[0m
 
@@ -16,14 +14,14 @@ help: ## Показать справку
 	@echo "$(BOLD)$(BLUE)InvoiceGuard$(NC) — Payment Acceptance Service"
 	@echo ""
 	@echo "$(BOLD)🚀 Команды:$(NC)"
-	@echo "  $(GREEN)make install$(NC)    Установить все зависимости"
-	@echo "  $(GREEN)make up$(NC)         Запустить инфраструктуру (Docker)"
-	@echo "  $(GREEN)make down$(NC)       Остановить инфраструктуру"
-	@echo "  $(GREEN)make backend$(NC)    Запустить backend в dev-режиме"
-	@echo "  $(GREEN)make test$(NC)       Запустить тесты"
-	@echo "  $(GREEN)make seed$(NC)       Заполнить БД тестовыми данными"
-	@echo "  $(GREEN)make clean$(NC)      Очистить временные файлы"
-	@echo "  $(GREEN)make clean-ports$(NC) Свободить порты"
+	@echo "  $(GREEN)make install$(NC)    Установить все зависимости локально"
+	@echo "  $(GREEN)make build$(NC)      Собрать Docker образы"
+	@echo "  $(GREEN)make up$(NC)         Запустить всё в Docker (App + DB)"
+	@echo "  $(GREEN)make down$(NC)       Остановить всё"
+	@echo "  $(GREEN)make backend$(NC)    Запустить backend локально в dev-режиме"
+	@echo "  $(GREEN)make test$(NC)       Запустить тесты локально"
+	@echo "  $(GREEN)make seed$(NC)       Заполнить БД тестовыми данными (локально)"
+	@echo "  $(GREEN)make clean-ports$(NC) Освободить порты"
 
 clean-ports: ## Очистить порты
 	@echo "$(YELLOW)🧹 Очищаем порты...$(NC)"
@@ -32,6 +30,9 @@ clean-ports: ## Очистить порты
 
 install:
 	cd $(BACKEND_DIR) && npm install
+
+build:
+	docker-compose build --no-cache
 
 up:
 	docker-compose up -d
