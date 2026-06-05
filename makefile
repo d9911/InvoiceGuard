@@ -1,41 +1,29 @@
-.PHONY: help install up down logs backend test seed clean clean-all
+.PHONY: help install up down logs backend test seed clean clean-all clean-ports
+
 BACKEND_DIR = backend
-FRONTEND_DIR = frontend
+BACKEND_PORT = 3000
 
-VENV = $(BACKEND_DIR)/.venv
-
-BACKEND_PORT =
-FRONTEND_PORT =
-PREVIEW_PORT =
-DOCKER_FRONTEND_PORT =
-
-# Docker
-DOCKER_NAME_BACKEND = invoice-guard-backend
-DOCKER_NAME_FRONTEND = invoice-guard-frontend
-COMPOSE_FILE = docker-compose.yml
-
-GREEN := \033[0;32m
+GREEN  := \033[0;32m
 YELLOW := \033[0;33m
-BLUE := \033[0;34m
+BLUE   := \033[0;34m
 CYAN := \033[0;36m
 RED := \033[0;31m
-BOLD := \033[1m
-NC := \033[0m
+BOLD   := \033[1m
+NC     := \033[0m
 
 help: ## Показать справку
 	@echo ""
 	@echo "$(BOLD)$(BLUE)InvoiceGuard$(NC) — Payment Acceptance Service"
 	@echo ""
-	@echo "$(BOLD)🚀 Команды запуска:$(NC)"
+	@echo "$(BOLD)🚀 Команды:$(NC)"
 	@echo "  $(GREEN)make install$(NC)    Установить все зависимости"
-	@echo "  $(GREEN)make up$(NC)         Start infrastructure (Docker)"
-	@echo "  $(GREEN)make down$(NC)       Stop infrastructure"
-	@echo "  $(GREEN)make backend$(NC)    Run backend in dev mode"
-	@echo "  $(GREEN)make test$(NC)       Run tests"
-	@echo "  $(GREEN)make seed$(NC)       Seed database with initial merchant"
-	@echo "  $(GREEN)make clean$(NC)      Remove dist and node_modules"
-
-
+	@echo "  $(GREEN)make up$(NC)         Запустить инфраструктуру (Docker)"
+	@echo "  $(GREEN)make down$(NC)       Остановить инфраструктуру"
+	@echo "  $(GREEN)make backend$(NC)    Запустить backend в dev-режиме"
+	@echo "  $(GREEN)make test$(NC)       Запустить тесты"
+	@echo "  $(GREEN)make seed$(NC)       Заполнить БД тестовыми данными"
+	@echo "  $(GREEN)make clean$(NC)      Очистить временные файлы"
+	@echo "  $(GREEN)make clean-ports$(NC) Свободить порты"
 
 clean-ports: ## Очистить порты
 	@echo "$(YELLOW)🧹 Очищаем порты...$(NC)"
@@ -43,7 +31,7 @@ clean-ports: ## Очистить порты
 	@echo "$(GREEN)✅ Порты свободны$(NC)"
 
 install:
-	cd backend && npm install
+	cd $(BACKEND_DIR) && npm install
 
 up:
 	docker-compose up -d
@@ -55,16 +43,16 @@ logs:
 	docker-compose logs -f
 
 backend:
-	cd backend && npm run dev
+	cd $(BACKEND_DIR) && npm run dev
 
 test:
-	cd backend && npm test
+	cd $(BACKEND_DIR) && npm test
 
 seed:
-	cd backend && npx ts-node src/infrastructure/database/seed.ts
+	cd $(BACKEND_DIR) && npx ts-node src/infrastructure/database/seed.ts
 
 clean:
-	rm -rf backend/dist
+	rm -rf $(BACKEND_DIR)/dist
 
 clean-all: clean
-	rm -rf backend/node_modules
+	rm -rf $(BACKEND_DIR)/node_modules
