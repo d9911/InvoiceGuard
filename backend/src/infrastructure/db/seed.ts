@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { MerchantModel } from '@/entities/merchant/model';
 import { UserModel } from '@/entities/user/model';
+import bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -20,9 +21,10 @@ async function seed() {
       webhookSecret: 'super_secret_key'
     });
 
+    const passwordHash = await bcrypt.hash('password123', 10);
     await UserModel.create({
       email: 'admin@example.com',
-      passwordHash: 'password123', // In prod, use bcrypt
+      passwordHash: passwordHash
     });
 
     console.log('Seed success');

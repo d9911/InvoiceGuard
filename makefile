@@ -30,7 +30,7 @@ clean-ports:
 	@echo "$(GREEN)✅ Порты свободны$(NC)"
 
 install:
-	cd $(BACKEND_DIR) && npm install
+	cd $(BACKEND_DIR) && yarn install
 
 build:
 	docker-compose build --no-cache
@@ -45,10 +45,10 @@ logs:
 	docker-compose logs -f
 
 backend:
-	cd $(BACKEND_DIR) && npm run dev
+	cd $(BACKEND_DIR) && yarn run dev
 
 test:
-	cd $(BACKEND_DIR) && npm test
+	cd $(BACKEND_DIR) && yarn test
 
 seed:
 	cd $(BACKEND_DIR) && npx ts-node src/infrastructure/db/seed.ts

@@ -4,17 +4,17 @@ WORKDIR /app
 
 
 COPY backend/package*.json ./
-RUN npm install
+RUN yarn install
 
 
 COPY backend/ .
 
 
-RUN npm run build
+RUN yarn run build
 
 
 COPY backend/swagger.yaml ./dist/swagger.yaml
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["yarn", "start"]

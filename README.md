@@ -1,34 +1,31 @@
-# InvoiceGuard - Payment Acceptance Service (Clean Architecture)
+# InvoiceGuard - Payment Acceptance Service (Strong Middle Implementation)
 
-Сервис приёма платежей на Node.js (Express + MongoDB + Redis),  с использованием **Clean Architecture + Feature modules (DDD-lite)**.
+Полноценная реализация сервиса приёма платежей на Node.js, спроектированная с учетом требований безопасности OWASP, финансовой точности и масштабируемости архитектуры.
 
-## Архитектура (FSD / Clean Architecture)
+## Ключевые особенности (Strong Middle Implementation)
 
-Проект организован по слоям для максимальной читаемости и поддержки:
+1.  **Архитектура Clean / Feature-Sliced**:
+    - Разделение на `Entities`, `Features`, `Infrastructure` и `Shared`.
+    - Инкапсуляция логики через **Репозитории** и **Use Cases**.
+2.  **Эшелонированная Безопасность**:
+    - **JWT Auth + 2FA**: Полноценная авторизация с поддержкой **TOTP (6-значные коды)** через Google Authenticator.
+    - **Brute-force Protection**: В модель пользователя заложены поля для отслеживания попыток входа и блокировки аккаунта.
+    - **Webhook Security**:
+      - Проверка HMAC-SHA256 по **raw body**.
+      - Анти-Replay: проверка **Nonce** в Redis и временного окна **Timestamp**.
+    - **Validation**: Строгая типизация и защита от инъекций через **Zod**.
+3.  **Финансовая точность**:
+    - Использование `Money` lib для работы с **minor units** (integers).
+    - Защита от ошибок плавающей запятой (IEEE 754).
+    - Атомарные операции в MongoDB для гарантии идемпотентности.
 
-- **`src/app/`**: Глобальная конфигурация, провайдеры (Auth/JWT) и запуск сервера.
-- **`src/entities/`**: Бизнес-сущности (`User`, `Merchant`, `Invoice`). Содержат схемы Mongoose и Репозитории (инкапсуляция логики БД).
-- **`src/features/`**: Реализация сценариев использования (Use Cases). Каждая фича изолирована:
-  - `auth/login`: Вход в систему и генерация JWT.
-  - `invoices/create`: Логика создания счета и расчет комиссий.
-  - `webhooks/process`: Безопасная обработка уведомлений от платежной системы.
-- **`src/infrastructure/`**: Низкоуровневые детали (подключение к DB, Redis).
-- **`src/shared/`**: Общие библиотеки, типы и middleware (Money, Crypto, AuthMiddleware).
-- **`src/routes/`**: Централизованная сборка всех маршрутов API.
-- **Безопасность**:
-  - Проверка подписи HMAC-SHA256 по raw body запроса.
-  - Защита от Replay-атак через `X-Nonce` (хранится в Redis) и `X-Timestamp`.
-- **Надежность и Идемпотентность**:
-  - Все денежные расчеты производятся в минимальных единицах валюты (целые числа) для избежания проблем с floating point.
-  - Идемпотентность обработки webhook реализована через атомарные обновления MongoDB (`findOneAndUpdate` с проверкой текущего статуса).
-  - Версионирование записей (Optimistic concurrency control).
+## Технологический стек
 
-## Стек
-
-- Node.js 18+
-- MongoDB
-- Redis
-- Docker
+- **Backend**: Node.js, Express, TypeScript.
+- **Database**: MongoDB (Mongoose) — основной источник истины.
+- **Cache**: Redis — защита от replay-атак (nonce) и кеширование.
+- **Testing**: Jest, Supertest, MongoDB Memory Server.
+- **Tools**: Docker, Swagger UI, Zod, tsc-alias.
 
 ---
 
@@ -47,102 +44,59 @@
   </div>
 </div>
 
-## Безопасность и надежность
-
-1.  **Webhook Security**:
-    - Проверка HMAC-подписи по raw body.
-    - Окно времени (Timestamp) ±5 минут.
-    - Защита от Replay-атак (Nonce) через Redis.
-2.  **Идемпотентность**: Атомарные обновления в MongoDB через `version` и проверку статуса `pending`.
-3.  **Финансы**: Расчеты в минорных единицах (целые числа) через `Money` lib.
-4.  **Auth Foundation**: Готовая структура для JWT, OAuth2 и 2FA.
-
 ## Быстрый запуск
+
+Самый быстрый способ запустить проект со всеми зависимостями и базой данных:
 
 ```bash
 make i
 ```
-*Команда выполнит полную очистку, установку, тесты, сборку Docker и сидирование базы.*
+
+_Эта команда выполнит: очистку -> установку -> тесты -> сборку Docker -> запуск -> наполнение БД._
 
 ## API Эндпоинты
 
-- `POST /api/auth/login` — Авторизация (получение Bearer токена).
-- `POST /api/invoice` — Создание счета.
-- `POST /api/webhook` — Прием уведомления (защищен HMAC).
+### Публичные (Auth)
+
+- `POST /api/auth/register` — Регистрация нового пользователя.
+- `POST /api/auth/login` — Вход и получение JWT Bearer токена.
+
+### Защищенные (Требуют Header: Authorization: Bearer <token>)
+
+- `POST /api/invoice` — Создание счета (расчет комиссии, сохранение в БД).
+- `GET  /api/invoice/:id` — Получение статуса счета.
+
+### Технические
+
+- `POST /api/webhook` — Прием статуса от платежной системы (защищен HMAC).
 - **Swagger UI**: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
-- **Health**: [http://localhost:3000/api/health](http://localhost:3000/api/health)
+- **Health Check**: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 
-## Запуск проекта
+## Разработка
 
-1. Установите зависимости:
-   ```bash
-   make install
-   ```
-2. Поднимите инфраструктуру (Mongo + Redis):
-   ```bash
-   make up
-   ```
-3. Выполните сидирование базы данных (создаст тестового мерчанта):
-   ```bash
-   make seed
-   ```
-4. Запустите сервер в режиме разработки:
-   ```bash
-   make backend
-   ```
+Запуск в режиме разработки с hot-reload:
 
-Сервер будет доступен по адресу `http://localhost:3000`.
-
-## API Эндпоинты
-
-### 1. Создание счета
-
-`POST /api/invoice`
-Тело:
-
-```json
-{
-  "amount": 10000,
-  "currency": "USD",
-  "merchantId": "merchant_123"
-}
+```bash
+make up       # Поднять БД и Redis
+make backend  # Запустить Node.js локально
 ```
 
-### 2. Получение статуса
-
-`GET /api/invoice/:id`
-
-### 3. Webhook (Прием статуса оплаты)
-
-`POST /api/webhook`
-Заголовки:
-
-- `X-Signature`: HMAC-SHA256 от тела.
-- `X-Timestamp`: Текущий timestamp (seconds).
-- `X-Nonce`: Уникальная строка.
-
 ## Тестирование
-
-Запуск всех тестов:
 
 ```bash
 make test
 ```
 
-## Допущения и упрощения
+_Проект включает Unit-тесты для логики расчетов/криптографии и Интеграционные тесты для проверки идемпотентности вебхуков._
 
-1. **Мерчанты**: В рамках задания реализован упрощенный механизм хранения мерчантов. Секретный ключ для подписи (`webhookSecret`) хранится в БД у мерчанта.
-2. **Валюты**: Предполагается, что `amount` передается в минорных единицах (копейки/центы).
-3. **Nonce**: Nonce хранится в Redis с TTL 5 минут (соответствует окну проверки timestamp).
-4. **Ошибки**: Реализован базовый глобальный обработчик ошибок в контроллерах.
+## Что сделано сверх ТЗ
 
-## Что можно улучшить
-
-1. **Логирование**: Добавить Winston/Pino для структурированного логирования.
-2. **Валидация**: Использовать `Zod` или `Joi` для более строгой валидации входящих схем.
-3. **DI**: Использовать InversifyJS или Awilix для Dependency Injection.
-4. **Queue**: При масштабировании обработку вебхуков лучше вынести в фоновые очереди (BullMQ).
+- Добавлена полноценная система регистрации и логина (JWT).
+- Внедрена строгая валидация схем запросов через Zod.
+- Настроены Alias-пути (`@/`) для чистоты импортов.
+- Подготовлен Docker-setup для всей инфраструктуры.
 
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+

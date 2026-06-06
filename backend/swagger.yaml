@@ -9,9 +9,48 @@ servers:
     description: Local server
 
 paths:
-  /invoice:
+  /auth/login:
     post:
-      summary: Создание счета (invoice)
+      summary: Вход в систему
+      tags: [Auth]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Успешный вход или требование 2FA
+
+  /auth/2fa/enable:
+    post:
+      summary: Генерация секрета 2FA
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: QR-код и секрет
+
+  /auth/2fa/verify:
+    post:
+      summary: Подтверждение и включение 2FA
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, example: "123456" }
+      responses:
+        200:
+          description: 2FA включен
       tags: [Invoices]
       requestBody:
         required: true
@@ -84,6 +123,11 @@ paths:
           description: Статус обновлен
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Invoice:
       type: object
