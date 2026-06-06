@@ -1,7 +1,9 @@
 import { InvoiceModel, InvoiceStatus, IInvoice } from '../../domain/models/Invoice';
 import { MerchantModel } from '../../domain/models/Merchant';
 import { Money } from '../../shared/utils/money';
-import { v4 as uuidv4 } from 'uuid'; // need to add uuid to package.json
+//  CommonJS compatibility with uuid v8
+const uuid = require('uuid');
+const uuidv4 = uuid.v4;
 
 export class InvoiceService {
   async createInvoice(data: { amount: number; currency: string; merchantId: string }) {
@@ -39,12 +41,12 @@ export class InvoiceService {
     // Atomic update to prevent race conditions and ensure idempotency
     // Only update if current status is PENDING
     const result = await InvoiceModel.findOneAndUpdate(
-      { 
-        invoiceId, 
-        status: InvoiceStatus.PENDING 
+      {
+        invoiceId,
+        status: InvoiceStatus.PENDING
       },
-      { 
-        $set: { 
+      {
+        $set: {
           status: targetStatus,
           paidAt: targetStatus === InvoiceStatus.PAID ? new Date() : undefined
         },
@@ -59,7 +61,7 @@ export class InvoiceService {
       if (!existingInvoice) {
         throw new Error('Invoice not found');
       }
-      
+
       // If status is already what we wanted (or already finalized), we return it (idempotency)
       return existingInvoice;
     }

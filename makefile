@@ -1,4 +1,4 @@
-.PHONY: help install up down logs backend test seed clean clean-ports build
+.PHONY: help install up down logs backend test seed docker-seed clean clean-ports build
 
 BACKEND_DIR = backend
 BACKEND_PORT = 3000
@@ -21,6 +21,7 @@ help: ## Показать справку
 	@echo "  $(GREEN)make backend$(NC)    Запустить backend локально в dev-режиме"
 	@echo "  $(GREEN)make test$(NC)       Запустить тесты локально"
 	@echo "  $(GREEN)make seed$(NC)       Заполнить БД тестовыми данными (локально)"
+	@echo "  $(GREEN)make docker-seed$(NC) Заполнить БД тестовыми данными в Docker"
 	@echo "  $(GREEN)make clean-ports$(NC) Освободить порты"
 
 clean-ports: ## Очистить порты
@@ -52,8 +53,13 @@ test:
 seed:
 	cd $(BACKEND_DIR) && npx ts-node src/infrastructure/database/seed.ts
 
+docker-seed:
+	docker-compose exec backend node dist/src/infrastructure/database/seed.js
+
 clean:
 	rm -rf $(BACKEND_DIR)/dist
 
 clean-all: clean
 	rm -rf $(BACKEND_DIR)/node_modules
+
+i: clean-all install test build docker-seed

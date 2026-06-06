@@ -5,9 +5,9 @@ import { InvoiceModel } from '../../../domain/models/Invoice';
 import { redisService } from '../../../infrastructure/redis/redis.service';
 
 export const webhookAuth = async (req: Request, res: Response, next: NextFunction) => {
-  const signature = req.header('X-Signature');
-  const timestamp = req.header('X-Timestamp');
-  const nonce = req.header('X-Nonce');
+  const signature = req.header('X-Signature') as string;
+  const timestamp = req.header('X-Timestamp') as string;
+  const nonce = req.header('X-Nonce') as string;
 
   if (!signature || !timestamp || !nonce) {
     return res.status(401).json({ error: 'Missing security headers' });
@@ -35,7 +35,7 @@ export const webhookAuth = async (req: Request, res: Response, next: NextFunctio
   try {
     const body = JSON.parse(rawBody.toString());
     const { invoiceId } = body;
-    
+
     if (!invoiceId) {
       return res.status(400).json({ error: 'invoiceId missing in payload' });
     }

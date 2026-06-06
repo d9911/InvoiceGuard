@@ -5,11 +5,15 @@ export class InvoiceController {
   async create(req: Request, res: Response) {
     try {
       const { amount, currency, merchantId } = req.body;
-      if (!amount || !currency || !merchantId) {
+      if (amount === undefined || !currency || !merchantId) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const invoice = await invoiceService.createInvoice({ amount, currency, merchantId });
+      const invoice = await invoiceService.createInvoice({
+        amount: Number(amount),
+        currency: currency as string,
+        merchantId: merchantId as string
+      });
       return res.status(201).json({
         invoiceId: invoice.invoiceId,
         amount: invoice.amount,
@@ -25,7 +29,7 @@ export class InvoiceController {
 
   async get(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const invoice = await invoiceService.getInvoice(id);
       if (!invoice) {
         return res.status(404).json({ error: 'Invoice not found' });
@@ -38,16 +42,18 @@ export class InvoiceController {
 
   async webhook(req: Request, res: Response) {
     try {
-      const { invoiceId, status } = req.body;
+      const invoiceId = req.body.invoiceId as string;
+      const status = req.body.status as 'paid' | 'failed';
+
       if (!invoiceId || !status) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
       const invoice = await invoiceService.processWebhook(invoiceId, status);
-      return res.json({ 
-        message: 'Webhook processed', 
-        invoiceId: invoice.invoiceId, 
-        status: invoice.status 
+      return res.json({
+        message: 'Webhook processed',
+        invoiceId: invoice.invoiceId,
+        status: invoice.status
       });
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
