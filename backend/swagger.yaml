@@ -21,8 +21,8 @@ paths:
               type: object
               required: [email, password]
               properties:
-                email: { type: string, example: 'admin@example.com' }
-                password: { type: string, example: 'password123' }
+                email: { type: string, example: "admin@d9911.org" }
+                password: { type: string, example: "d9911" }
       responses:
         201:
           description: Пользователь создан
@@ -39,8 +39,8 @@ paths:
               type: object
               required: [email, password]
               properties:
-                email: { type: string, example: 'admin@example.com' }
-                password: { type: string, example: 'password123' }
+                email: { type: string, example: "admin@d9911.org" }
+                password: { type: string, example: "d9911" }
       responses:
         200:
           description: Успешный вход или требование 2FA
@@ -67,7 +67,7 @@ paths:
               type: object
               required: [token]
               properties:
-                token: { type: string, example: '123456', description: '6-значный код из Google Authenticator' }
+                token: { type: string, example: "123456", description: "6-значный код из Google Authenticator" }
       responses:
         200:
           description: 2FA успешно включен
@@ -84,7 +84,7 @@ paths:
               type: object
               required: [token]
               properties:
-                token: { type: string, example: '123456' }
+                token: { type: string, example: "123456" }
       responses:
         200:
           description: Возвращает финальный JWT токен
@@ -102,9 +102,9 @@ paths:
               type: object
               required: [amount, currency, merchantId]
               properties:
-                amount: { type: integer, example: 10000, description: 'Сумма в копейках/центах' }
-                currency: { type: string, example: 'USD' }
-                merchantId: { type: string, example: 'merchant_123' }
+                amount: { type: integer, example: 10000, description: "Сумма в копейках/центах" }
+                currency: { type: string, example: "USD" }
+                merchantId: { type: string, example: "merchant_123" }
       responses:
         201:
           description: Счет создан

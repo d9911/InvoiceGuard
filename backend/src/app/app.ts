@@ -5,10 +5,23 @@ import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import router from '@/routes';
+import 'module-alias/register';
+
+import { MetricsProvider } from './providers/metrics.provider';
 
 const app = express();
 
 app.use(cors());
+
+// Metrics middleware
+app.use((req, res, next) => {
+  const end = MetricsProvider.httpRequestDuration.startTimer({ method: req.method, path: req.path });
+  res.on('finish', () => {
+    MetricsProvider.httpRequestsCounter.inc({ method: req.method, path: req.path, status: res.statusCode });
+    end();
+  });
+  next();
+});
 
 // Swagger
 try {

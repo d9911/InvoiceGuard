@@ -1,4 +1,4 @@
-.PHONY: help install up down logs backend test seed docker-seed clean clean-ports build i
+.PHONY: help install up down logs backend test seed docker-seed clean clean-ports build i infra dev local-start
 
 BACKEND_DIR = backend
 BACKEND_PORT = 3000
@@ -13,16 +13,25 @@ help: ## Показать справку
 	@echo ""
 	@echo "$(BOLD)$(BLUE)InvoiceGuard$(NC) — Payment Acceptance Service"
 	@echo ""
-	@echo "$(BOLD)🚀 Команды:$(NC)"
-	@echo "  $(GREEN)make install$(NC)    Установить все зависимости"
-	@echo "  $(GREEN)make build$(NC)      Собрать Docker образы"
-	@echo "  $(GREEN)make up$(NC)         Запустить всё в Docker"
-	@echo "  $(GREEN)make down$(NC)       Остановить всё"
-	@echo "  $(GREEN)make backend$(NC)    Запустить backend (dev)"
-	@echo "  $(GREEN)make test$(NC)       Запустить тесты"
-	@echo "  $(GREEN)make seed$(NC)       Seed БД (локально)"
-	@echo "  $(GREEN)make docker-seed$(NC) Seed БД (Docker)"
-	@echo "  $(GREEN)make clean-ports$(NC) Освободить порты"
+	@echo "$(BOLD)🚀 Команды (Docker):$(NC)"
+	@echo "  $(GREEN)make i$(NC)           Полный цикл: Сборка + Запуск + Сид"
+	@echo "  $(GREEN)make build$(NC)       Собрать Docker образы"
+	@echo "  $(GREEN)make up$(NC)          Запустить всё (App, DB, Redis, Prom/Grafana)"
+	@echo "  $(GREEN)make down$(NC)        Остановить всё"
+	@echo "  $(GREEN)make docker-seed$(NC) Заполнить БД внутри Docker"
+	@echo ""
+	@echo "$(BOLD)💻 Команды (Локальная разработка):$(NC)"
+	@echo "  $(GREEN)make dev$(NC)         Всё для локального старта (Infra + Seed + Backend Dev)"
+	@echo "  $(GREEN)make infra$(NC)       Запустить только MongoDB и Redis в Docker"
+	@echo "  $(GREEN)make install$(NC)     Установить зависимости (Yarn)"
+	@echo "  $(GREEN)make backend$(NC)     Запустить backend локально (ts-node-dev)"
+	@echo "  $(GREEN)make seed$(NC)        Заполнить локальную БД"
+	@echo "  $(GREEN)make test$(NC)        Запустить тесты"
+	@echo "  $(GREEN)make local-start$(NC) Собрать и запустить локально через PM2"
+	@echo ""
+	@echo "$(BOLD)🧹 Служебные:$(NC)"
+	@echo "  $(GREEN)make clean-ports$(NC) Освободить порт 3000"
+	@echo "  $(GREEN)make logs$(NC)        Просмотр логов Docker"
 
 clean-ports:
 	@echo "$(YELLOW)🧹 Очищаем порты...$(NC)"
@@ -38,6 +47,9 @@ build:
 up:
 	docker-compose up -d
 
+infra: ## Запустить только БД и Redis
+	docker-compose up -d mongodb redis
+
 down:
 	docker-compose down
 
@@ -51,7 +63,7 @@ test:
 	cd $(BACKEND_DIR) && yarn test
 
 seed:
-	cd $(BACKEND_DIR) && npx ts-node src/infrastructure/db/seed.ts
+	cd $(BACKEND_DIR) && npx ts-node -r tsconfig-paths/register src/infrastructure/db/seed.ts
 
 docker-seed:
 	docker-compose exec backend node dist/src/infrastructure/db/seed.js
@@ -62,8 +74,19 @@ clean:
 clean-all: clean
 	rm -rf $(BACKEND_DIR)/node_modules
 
-i: clean-all install test build
+# Полный цикл для Docker (как просили в 'i')
+i: clean install test build
 	$(MAKE) up
-	@echo "Waiting for backend to start..."
-	@sleep 5
+	@echo "$(YELLOW)Waiting for backend to start...$(NC)"
+	@sleep 7
 	$(MAKE) docker-seed
+	@echo "$(GREEN)✅ Docker environment is ready!$(NC)"
+
+# Быстрый старт для локальной разработки
+dev: clean-ports infra install seed backend
+
+# Локальный запуск через PM2 (имитация продакшена)
+local-start: clean-ports infra install
+	cd $(BACKEND_DIR) && yarn run build
+	cd $(BACKEND_DIR) && npx pm2 start ecosystem.config.js
+	@echo "$(GREEN)✅ Started locally with PM2. Check 'npx pm2 status'$(NC)"

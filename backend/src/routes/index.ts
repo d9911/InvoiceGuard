@@ -7,6 +7,7 @@ import { RegisterController } from '@/features/auth/register/controller';
 import { TwoFactorController } from '@/features/auth/2fa/controller';
 import { authMiddleware } from '@/shared/lib/authMiddleware';
 import { InvoiceRepository } from '@/entities/invoice/repository';
+import { MetricsProvider } from '@/app/providers/metrics.provider';
 
 const router = Router();
 
@@ -54,5 +55,7 @@ router.post('/webhook', webhookSecurityMiddleware, async (req, res) => {
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
 });
+
+router.get('/metrics', (req, res) => MetricsProvider.getMetrics(req, res));
 
 export default router;

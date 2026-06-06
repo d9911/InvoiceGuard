@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(5) // Reduced from 8 to 5 to allow "d9911"
 });
 
 export class RegisterController {
