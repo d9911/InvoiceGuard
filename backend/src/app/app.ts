@@ -4,7 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
-import router from '../routes';
+import router from '@/routes';
 
 const app = express();
 

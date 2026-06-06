@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { MerchantModel } from '../../entities/merchant/model';
-import { UserModel } from '../../entities/user/model';
+import { MerchantModel } from '@/entities/merchant/model';
+import { UserModel } from '@/entities/user/model';
 import * as dotenv from 'dotenv';
 dotenv.config();
 

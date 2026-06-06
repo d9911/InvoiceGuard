@@ -2,8 +2,8 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { app } from './app';
-import { connectDB } from '../infrastructure/db/mongoose';
-import { redisService } from '../infrastructure/redis/redis.service';
+import { connectDB } from '@/infrastructure/db/mongoose';
+import { redisService } from '@/infrastructure/redis/redis.service';
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,4 +1,4 @@
-import { CryptoLib } from '../../src/shared/lib/crypto';
+import { CryptoLib } from '@/shared/lib/crypto';
 
 describe('Crypto Utility', () => {
   const secret = 'test_secret';

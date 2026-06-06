@@ -1,15 +1,20 @@
-# InvoiceGuard - Payment Acceptance Service
+# InvoiceGuard - Payment Acceptance Service (Clean Architecture)
 
-Сервис приёма платежей на Node.js (Express + MongoDB + Redis) с использованием Clean Architecture / DDD-lite.
+Сервис приёма платежей на Node.js (Express + MongoDB + Redis),  с использованием **Clean Architecture + Feature modules (DDD-lite)**.
 
-## Особенности реализации
+## Архитектура (FSD / Clean Architecture)
 
-- **Clean Architecture**: Четкое разделение на слои:
-  - `domain`: Модели данных и бизнес-правила.
-  - `application`: Сервисы (use cases).
-  - `interfaces`: HTTP контроллеры, роуты и middleware.
-  - `infrastructure`: Работа с БД, Redis и внешними API.
-  - `shared`: Общие утилиты (деньги, криптография).
+Проект организован по слоям для максимальной читаемости и поддержки:
+
+- **`src/app/`**: Глобальная конфигурация, провайдеры (Auth/JWT) и запуск сервера.
+- **`src/entities/`**: Бизнес-сущности (`User`, `Merchant`, `Invoice`). Содержат схемы Mongoose и Репозитории (инкапсуляция логики БД).
+- **`src/features/`**: Реализация сценариев использования (Use Cases). Каждая фича изолирована:
+  - `auth/login`: Вход в систему и генерация JWT.
+  - `invoices/create`: Логика создания счета и расчет комиссий.
+  - `webhooks/process`: Безопасная обработка уведомлений от платежной системы.
+- **`src/infrastructure/`**: Низкоуровневые детали (подключение к DB, Redis).
+- **`src/shared/`**: Общие библиотеки, типы и middleware (Money, Crypto, AuthMiddleware).
+- **`src/routes/`**: Централизованная сборка всех маршрутов API.
 - **Безопасность**:
   - Проверка подписи HMAC-SHA256 по raw body запроса.
   - Защита от Replay-атак через `X-Nonce` (хранится в Redis) и `X-Timestamp`.
@@ -41,6 +46,31 @@
     </div>
   </div>
 </div>
+
+## Безопасность и надежность
+
+1.  **Webhook Security**:
+    - Проверка HMAC-подписи по raw body.
+    - Окно времени (Timestamp) ±5 минут.
+    - Защита от Replay-атак (Nonce) через Redis.
+2.  **Идемпотентность**: Атомарные обновления в MongoDB через `version` и проверку статуса `pending`.
+3.  **Финансы**: Расчеты в минорных единицах (целые числа) через `Money` lib.
+4.  **Auth Foundation**: Готовая структура для JWT, OAuth2 и 2FA.
+
+## Быстрый запуск
+
+```bash
+make i
+```
+*Команда выполнит полную очистку, установку, тесты, сборку Docker и сидирование базы.*
+
+## API Эндпоинты
+
+- `POST /api/auth/login` — Авторизация (получение Bearer токена).
+- `POST /api/invoice` — Создание счета.
+- `POST /api/webhook` — Прием уведомления (защищен HMAC).
+- **Swagger UI**: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+- **Health**: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 
 ## Запуск проекта
 

@@ -1,4 +1,4 @@
-import { InvoiceRepository } from '../../../entities/invoice/repository';
+import { InvoiceRepository } from '@/entities/invoice/repository';
 
 export class ProcessWebhookUseCase {
   private invoiceRepo = new InvoiceRepository();

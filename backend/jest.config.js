@@ -10,10 +10,6 @@ module.exports = {
       tsconfig: 'tsconfig.json'
     }]
   },
-  // This is crucial for uuid and other ESM-only/hybrid packages
-  transformIgnorePatterns: [
-    "node_modules/(?!(uuid)/)"
-  ],
   verbose: true,
   testTimeout: 30000
 };

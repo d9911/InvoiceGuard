@@ -7,8 +7,8 @@
   },
   "scripts": {
     "start": "node dist/src/app/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/app/server.ts",
-    "build": "tsc",
+    "dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/app/server.ts",
+    "build": "tsc && tsc-alias",
     "test": "jest",
     "test:watch": "jest --watchAll",
     "lint": "eslint . --ext .ts"
@@ -41,6 +41,8 @@
     "typescript": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.6",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/yamljs": "^0.2.34"
+    "@types/yamljs": "^0.2.34",
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0"
   }
 }

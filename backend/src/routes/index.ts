@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { CreateInvoiceController } from '../features/invoices/create/controller';
-import { ProcessWebhookUseCase } from '../features/webhooks/process/useCase';
-import { webhookSecurityMiddleware } from '../features/webhooks/process/middleware';
-import { LoginController } from '../features/auth/login/controller';
+import { CreateInvoiceController } from '@/features/invoices/create/controller';
+import { ProcessWebhookUseCase } from '@/features/webhooks/process/useCase';
+import { webhookSecurityMiddleware } from '@/features/webhooks/process/middleware';
+import { LoginController } from '@/features/auth/login/controller';
 
 const router = Router();
 const createInvoiceCtrl = new CreateInvoiceController();
@@ -11,6 +11,10 @@ const processWebhookUseCase = new ProcessWebhookUseCase();
 
 router.post('/auth/login', (req, res) => loginCtrl.handle(req, res));
 router.post('/invoice', (req, res) => createInvoiceCtrl.handle(req, res));
+
+router.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date() });
+});
 
 router.post('/webhook', webhookSecurityMiddleware, async (req, res) => {
   try {

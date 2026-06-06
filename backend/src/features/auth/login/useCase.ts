@@ -1,5 +1,5 @@
-import { UserModel } from '../../../entities/user/model';
-import { AuthProvider } from '../../../app/providers/auth.provider';
+import { UserModel } from '@/entities/user/model';
+import { AuthProvider } from '@/app/providers/auth.provider';
 
 export class LoginUseCase {
   async execute(email: string, password: string) {

@@ -1,7 +1,7 @@
-import { InvoiceRepository } from '../../../entities/invoice/repository';
-import { MerchantModel } from '../../../entities/merchant/model';
-import { Money } from '../../../shared/lib/money';
-import { CryptoLib } from '../../../shared/lib/crypto';
+import { InvoiceRepository } from '@/entities/invoice/repository';
+import { MerchantModel } from '@/entities/merchant/model';
+import { Money } from '@/shared/lib/money';
+import { CryptoLib } from '@/shared/lib/crypto';
 
 export class CreateInvoiceUseCase {
   private invoiceRepo = new InvoiceRepository();

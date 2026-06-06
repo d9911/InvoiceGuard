@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { InvoiceModel } from '../../src/entities/invoice/model';
-import { ProcessWebhookUseCase } from '../../src/features/webhooks/process/useCase';
+import { InvoiceModel } from '@/entities/invoice/model';
+import { ProcessWebhookUseCase } from '@/features/webhooks/process/useCase';
 
 describe('Webhook Processing Idempotency', () => {
   let mongoServer: MongoMemoryServer;

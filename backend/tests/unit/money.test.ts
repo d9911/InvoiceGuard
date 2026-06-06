@@ -1,4 +1,4 @@
-import { Money } from '../../src/shared/lib/money';
+import { Money } from '@/shared/lib/money';
 
 describe('Money Utility', () => {
   it('should calculate fee correctly', () => {
