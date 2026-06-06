@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: InvoiceGuard API
-  description: API для сервиса приема платежей (тестовое задание)
+  description: API для сервиса приема платежей (Middle+ Implementation)
   version: 1.0.0
 
 servers:
@@ -9,31 +9,50 @@ servers:
     description: Local server
 
 paths:
-  /auth/login:
+  /auth/register:
     post:
-      summary: Вход в систему
+      summary: Регистрация нового пользователя
       tags: [Auth]
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
               required: [email, password]
               properties:
-                email: { type: string }
-                password: { type: string }
+                email: { type: string, example: 'admin@example.com' }
+                password: { type: string, example: 'password123' }
+      responses:
+        201:
+          description: Пользователь создан
+
+  /auth/login:
+    post:
+      summary: Вход в систему
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: 'admin@example.com' }
+                password: { type: string, example: 'password123' }
       responses:
         200:
           description: Успешный вход или требование 2FA
 
   /auth/2fa/enable:
     post:
-      summary: Генерация секрета 2FA
+      summary: Генерация секрета 2FA (TOTP)
       tags: [Auth]
       security: [{ bearerAuth: [] }]
       responses:
         200:
-          description: QR-код и секрет
+          description: Возвращает секрет и QR-код в формате DataURL
 
   /auth/2fa/verify:
     post:
@@ -41,17 +60,40 @@ paths:
       tags: [Auth]
       security: [{ bearerAuth: [] }]
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
               required: [token]
               properties:
-                token: { type: string, example: "123456" }
+                token: { type: string, example: '123456', description: '6-значный код из Google Authenticator' }
       responses:
         200:
-          description: 2FA включен
+          description: 2FA успешно включен
+
+  /auth/2fa/login-verify:
+    post:
+      summary: Проверка 2FA при входе
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, example: '123456' }
+      responses:
+        200:
+          description: Возвращает финальный JWT токен
+
+  /invoice:
+    post:
+      summary: Создание счета (invoice)
       tags: [Invoices]
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -60,23 +102,12 @@ paths:
               type: object
               required: [amount, currency, merchantId]
               properties:
-                amount:
-                  type: integer
-                  example: 10000
-                  description: Сумма в минимальных единицах (копейки/центы)
-                currency:
-                  type: string
-                  example: "USD"
-                merchantId:
-                  type: string
-                  example: "merchant_123"
+                amount: { type: integer, example: 10000, description: 'Сумма в копейках/центах' }
+                currency: { type: string, example: 'USD' }
+                merchantId: { type: string, example: 'merchant_123' }
       responses:
         201:
           description: Счет создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Invoice'
 
   /invoice/{id}:
     get:
@@ -101,10 +132,10 @@ paths:
       summary: Прием статуса оплаты (Webhook)
       tags: [Webhooks]
       description: |
-        Требует заголовки:
-        - X-Signature: HMAC-SHA256(body, merchant_secret)
+        Требует заголовки безопасности:
+        - X-Signature: HMAC-SHA256(raw_body, merchant_secret)
         - X-Timestamp: Unix timestamp (seconds)
-        - X-Nonce: Unique random string
+        - X-Nonce: Уникальная строка
       requestBody:
         required: true
         content:
@@ -113,14 +144,19 @@ paths:
               type: object
               required: [invoiceId, status]
               properties:
-                invoiceId:
-                  type: string
-                status:
-                  type: string
-                  enum: [paid, failed]
+                invoiceId: { type: string, format: uuid }
+                status: { type: string, enum: [paid, failed] }
       responses:
         200:
           description: Статус обновлен
+
+  /health:
+    get:
+      summary: Проверка работоспособности
+      tags: [System]
+      responses:
+        200:
+          description: Статус системы
 
 components:
   securitySchemes:
@@ -132,21 +168,9 @@ components:
     Invoice:
       type: object
       properties:
-        invoiceId:
-          type: string
-        merchantId:
-          type: string
-        amount:
-          type: integer
-        currency:
-          type: string
-        fee:
-          type: integer
-        amountToReceive:
-          type: integer
-        status:
-          type: string
-          enum: [pending, paid, failed]
-        createdAt:
-          type: string
-          format: date-time
+        invoiceId: { type: string }
+        status: { type: string, enum: [pending, paid, failed] }
+        amount: { type: integer }
+        currency: { type: string }
+        fee: { type: integer }
+        amountToReceive: { type: integer }
