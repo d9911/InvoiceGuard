@@ -8,6 +8,7 @@ DESIGN.md
 PLAN.md
 # Environment / secrets
 .env
+*/.env
 *.env.local
 !.env.example
 superset-src/

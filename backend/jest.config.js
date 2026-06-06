@@ -7,8 +7,7 @@ module.exports = {
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-      isolatedModules: true
+      tsconfig: 'tsconfig.json'
     }]
   },
   // This is crucial for uuid and other ESM-only/hybrid packages

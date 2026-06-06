@@ -1,13 +1,13 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "dist/src/server.js",
+  "main": "dist/src/app/server.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "start": "node dist/src/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "start": "node dist/src/app/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/app/server.ts",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watchAll",
@@ -22,7 +22,8 @@
     "redis": "^6.0.0",
     "uuid": "^14.0.0",
     "swagger-ui-express": "^5.0.0",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -39,6 +40,7 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.6",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/yamljs": "^0.2.34"
   }
 }

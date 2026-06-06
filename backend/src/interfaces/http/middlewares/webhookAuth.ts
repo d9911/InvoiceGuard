@@ -35,7 +35,7 @@ export const webhookAuth = async (req: Request, res: Response, next: NextFunctio
   try {
     const body = JSON.parse(rawBody.toString());
     const { invoiceId } = body;
-
+    
     if (!invoiceId) {
       return res.status(400).json({ error: 'invoiceId missing in payload' });
     }

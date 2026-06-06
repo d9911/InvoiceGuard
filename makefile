@@ -1,4 +1,4 @@
-.PHONY: help install up down logs backend test seed docker-seed clean clean-ports build
+.PHONY: help install up down logs backend test seed docker-seed clean clean-ports build i
 
 BACKEND_DIR = backend
 BACKEND_PORT = 3000
@@ -14,17 +14,17 @@ help: ## Показать справку
 	@echo "$(BOLD)$(BLUE)InvoiceGuard$(NC) — Payment Acceptance Service"
 	@echo ""
 	@echo "$(BOLD)🚀 Команды:$(NC)"
-	@echo "  $(GREEN)make install$(NC)    Установить все зависимости локально"
+	@echo "  $(GREEN)make install$(NC)    Установить все зависимости"
 	@echo "  $(GREEN)make build$(NC)      Собрать Docker образы"
-	@echo "  $(GREEN)make up$(NC)         Запустить всё в Docker (App + DB)"
+	@echo "  $(GREEN)make up$(NC)         Запустить всё в Docker"
 	@echo "  $(GREEN)make down$(NC)       Остановить всё"
-	@echo "  $(GREEN)make backend$(NC)    Запустить backend локально в dev-режиме"
-	@echo "  $(GREEN)make test$(NC)       Запустить тесты локально"
-	@echo "  $(GREEN)make seed$(NC)       Заполнить БД тестовыми данными (локально)"
-	@echo "  $(GREEN)make docker-seed$(NC) Заполнить БД тестовыми данными в Docker"
+	@echo "  $(GREEN)make backend$(NC)    Запустить backend (dev)"
+	@echo "  $(GREEN)make test$(NC)       Запустить тесты"
+	@echo "  $(GREEN)make seed$(NC)       Seed БД (локально)"
+	@echo "  $(GREEN)make docker-seed$(NC) Seed БД (Docker)"
 	@echo "  $(GREEN)make clean-ports$(NC) Освободить порты"
 
-clean-ports: ## Очистить порты
+clean-ports:
 	@echo "$(YELLOW)🧹 Очищаем порты...$(NC)"
 	@-lsof -ti :$(BACKEND_PORT) | xargs kill -9 2>/dev/null || true
 	@echo "$(GREEN)✅ Порты свободны$(NC)"
@@ -51,10 +51,10 @@ test:
 	cd $(BACKEND_DIR) && npm test
 
 seed:
-	cd $(BACKEND_DIR) && npx ts-node src/infrastructure/database/seed.ts
+	cd $(BACKEND_DIR) && npx ts-node src/infrastructure/db/seed.ts
 
 docker-seed:
-	docker-compose exec backend node dist/src/infrastructure/database/seed.js
+	docker-compose exec backend node dist/src/infrastructure/db/seed.js
 
 clean:
 	rm -rf $(BACKEND_DIR)/dist
@@ -62,4 +62,8 @@ clean:
 clean-all: clean
 	rm -rf $(BACKEND_DIR)/node_modules
 
-i: clean-all install test build docker-seed
+i: clean-all install test build
+	$(MAKE) up
+	@echo "Waiting for backend to start..."
+	@sleep 5
+	$(MAKE) docker-seed
