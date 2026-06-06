@@ -14,6 +14,16 @@ services:
       - mongodb
       - redis
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: invoice-guard-frontend
+    ports:
+      - "5176:5176"
+    depends_on:
+      - backend
+
   prometheus:
     image: prom/prometheus:latest
     container_name: invoice-guard-prometheus

@@ -1,0 +1,35 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev-w": "vite --host 0.0.0.0 --port 5176",
+    "dev": "next dev -p 5176",
+    "build": "next build",
+    "start": "next start -p 5176",
+    "lint": "next lint",
+    "vite:dev": "vite",
+    "vite:build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "next": "16.2.7",
+    "tailwindcss": "^4.3.0",
+    "postcss": "^8.5.15",
+    "autoprefixer": "^10.5.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "lucide-react": "^1.17.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.6.0",
+    "@vitejs/plugin-react": "^6.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "terser": "^5.31.0"
+  }
+}

@@ -6,6 +6,7 @@ output.txt
 preferences.db
 DESIGN.md
 PLAN.md
+*/.next
 # Environment / secrets
 .env
 */.env

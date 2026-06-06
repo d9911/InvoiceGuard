@@ -1,14 +1,15 @@
-.PHONY: help install up down logs backend test seed docker-seed clean clean-ports build i infra dev local-start
+.PHONY: help install up down logs backend frontend test seed docker-seed clean clean-ports build i infra dev local-start
 
 BACKEND_DIR = backend
+FRONTEND_DIR = frontend
 BACKEND_PORT = 3000
+FRONTEND_PORT = 5176
 
 GREEN  := \033[0;32m
 YELLOW := \033[0;33m
 BLUE   := \033[0;34m
 BOLD   := \033[1m
 NC     := \033[0m
-
 help: ## Показать справку
 	@echo ""
 	@echo "$(BOLD)$(BLUE)InvoiceGuard$(NC) — Payment Acceptance Service"
@@ -24,6 +25,7 @@ help: ## Показать справку
 	@echo "  $(GREEN)make dev$(NC)         Всё для локального старта (Infra + Seed + Backend Dev)"
 	@echo "  $(GREEN)make infra$(NC)       Запустить только MongoDB и Redis в Docker"
 	@echo "  $(GREEN)make install$(NC)     Установить зависимости (Yarn)"
+	@echo "  $(GREEN)make frontend$(NC)    Запустить Frontend (Next.js)"
 	@echo "  $(GREEN)make backend$(NC)     Запустить backend локально (ts-node-dev)"
 	@echo "  $(GREEN)make seed$(NC)        Заполнить локальную БД"
 	@echo "  $(GREEN)make test$(NC)        Запустить тесты"
@@ -36,10 +38,12 @@ help: ## Показать справку
 clean-ports:
 	@echo "$(YELLOW)🧹 Очищаем порты...$(NC)"
 	@-lsof -ti :$(BACKEND_PORT) | xargs kill -9 2>/dev/null || true
+	@-lsof -ti :$(FRONTEND_PORT) | xargs kill -9 2>/dev/null || true
 	@echo "$(GREEN)✅ Порты свободны$(NC)"
 
 install:
 	cd $(BACKEND_DIR) && yarn install
+	cd $(FRONTEND_DIR) && yarn install
 
 build:
 	docker-compose build --no-cache
@@ -47,8 +51,8 @@ build:
 up:
 	docker-compose up -d
 
-infra: ## Запустить только БД и Redis
-	docker-compose up -d mongodb redis
+infra:
+	docker-compose up -d mongodb redis prometheus grafana
 
 down:
 	docker-compose down
@@ -58,6 +62,9 @@ logs:
 
 backend:
 	cd $(BACKEND_DIR) && yarn run dev
+
+frontend:
+	cd $(FRONTEND_DIR) && yarn run dev
 
 test:
 	cd $(BACKEND_DIR) && yarn test
@@ -69,21 +76,20 @@ docker-seed:
 	docker-compose exec backend node dist/src/infrastructure/db/seed.js
 
 clean:
-	rm -rf $(BACKEND_DIR)/dist
+	rm -rf $(BACKEND_DIR)/dist $(FRONTEND_DIR)/.next
 
 clean-all: clean
-	rm -rf $(BACKEND_DIR)/node_modules
+	rm -rf $(BACKEND_DIR)/node_modules $(FRONTEND_DIR)/node_modules
 
-# Полный цикл для Docker (как просили в 'i')
 i: clean install test build
 	$(MAKE) up
 	@echo "$(YELLOW)Waiting for backend to start...$(NC)"
 	@sleep 7
 	$(MAKE) docker-seed
-	@echo "$(GREEN)✅ Docker environment is ready!$(NC)"
+	@echo "$(GREEN)✅ System is ready!$(NC)"
 
-# Быстрый старт для локальной разработки
 dev: clean-ports infra install seed backend
+	cd $(BACKEND_DIR) && yarn run dev
 
 # Локальный запуск через PM2 (имитация продакшена)
 local-start: clean-ports infra install
