@@ -1,0 +1,6 @@
+{
+  "name": "InvoiceGuard",
+  "description": "Secure fintech invoice and payment collection platform with 2FA and HMAC-secured webhooks, styled in the vivid Wise brand identity.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [""]
+}

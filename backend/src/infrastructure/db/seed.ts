@@ -10,7 +10,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/invoic
 async function seed() {
   try {
     await mongoose.connect(MONGODB_URI);
-    
+
     await MerchantModel.deleteMany({});
     await UserModel.deleteMany({});
 
@@ -21,9 +21,9 @@ async function seed() {
       webhookSecret: 'super_secret_key'
     });
 
-    const passwordHash = await bcrypt.hash('password123', 10);
+    const passwordHash = await bcrypt.hash('d9911', 10);
     await UserModel.create({
-      email: 'admin@example.com',
+      email: 'admin@d9911.org',
       passwordHash: passwordHash
     });
 

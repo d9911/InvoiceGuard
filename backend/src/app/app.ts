@@ -25,8 +25,6 @@ app.use((req, res, next) => {
 
 // Swagger
 try {
-  // dist/src/app/app.js -> ../../swagger.yaml -> dist/swagger.yaml
-  // src/app/app.ts -> ../../swagger.yaml -> ./swagger.yaml
   const swaggerDocument = YAML.load(path.join(__dirname, '../../swagger.yaml'));
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch (e) {
