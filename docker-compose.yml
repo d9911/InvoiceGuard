@@ -21,6 +21,8 @@ services:
     container_name: invoice-guard-frontend
     ports:
       - "5176:5176"
+    environment:
+      - BACKEND_URL=http://backend:3000
     depends_on:
       - backend
 

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
@@ -17,7 +19,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     if (savedToken) setToken(savedToken);
-    if (savedUser) setUser(JSON.parse(savedUser));
+    if (savedUser && savedUser !== "undefined") {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Failed to parse user from local storage", e);
+      }
+    }
   }, []);
 
   const login = (newToken: string, userData: any) => {

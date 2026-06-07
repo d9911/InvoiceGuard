@@ -5,6 +5,20 @@ import { app } from '@/app/app';
 import { MerchantModel } from '@/entities/merchant/model';
 import { CryptoLib } from '@/shared/lib/crypto';
 
+jest.mock('@/infrastructure/redis/redis.service', () => {
+  const nonces = new Set<string>();
+  return {
+    redisService: {
+      connect: jest.fn().mockResolvedValue(undefined),
+      setNonce: jest.fn().mockImplementation(async (nonce: string) => {
+        if (nonces.has(nonce)) return false;
+        nonces.add(nonce);
+        return true;
+      }),
+    },
+  };
+});
+
 describe('E2E Financial Flow', () => {
   let mongoServer: MongoMemoryServer;
   let token: string;

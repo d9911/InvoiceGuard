@@ -6,7 +6,7 @@ import { AuthProvider } from "@/app/providers/auth-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "WiseGuard | Payments",
+  title: "InvoiceGuard | Payments",
   description: "Secure fintech payment system",
 };
 

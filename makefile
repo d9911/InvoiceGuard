@@ -10,6 +10,7 @@ YELLOW := \033[0;33m
 BLUE   := \033[0;34m
 BOLD   := \033[1m
 NC     := \033[0m
+
 help: ## Показать справку
 	@echo ""
 	@echo "$(BOLD)$(BLUE)InvoiceGuard$(NC) — Payment Acceptance Service"
@@ -17,7 +18,7 @@ help: ## Показать справку
 	@echo "$(BOLD)🚀 Команды (Docker):$(NC)"
 	@echo "  $(GREEN)make i$(NC)           Полный цикл: Сборка + Запуск + Сид"
 	@echo "  $(GREEN)make build$(NC)       Собрать Docker образы"
-	@echo "  $(GREEN)make up$(NC)          Запустить всё (App, DB, Redis, Prom/Grafana)"
+	@echo "  $(GREEN)make up$(NC)          Запустить всё в Docker"
 	@echo "  $(GREEN)make down$(NC)        Остановить всё"
 	@echo "  $(GREEN)make docker-seed$(NC) Заполнить БД внутри Docker"
 	@echo ""
@@ -32,7 +33,7 @@ help: ## Показать справку
 	@echo "  $(GREEN)make local-start$(NC) Собрать и запустить локально через PM2"
 	@echo ""
 	@echo "$(BOLD)🧹 Служебные:$(NC)"
-	@echo "  $(GREEN)make clean-ports$(NC) Освободить порт 3000"
+	@echo "  $(GREEN)make clean-ports$(NC) Освободить порт 3000/5176"
 	@echo "  $(GREEN)make logs$(NC)        Просмотр логов Docker"
 
 clean-ports:
@@ -63,7 +64,7 @@ logs:
 backend:
 	cd $(BACKEND_DIR) && yarn run dev
 
-frontend:
+frontend: clean-ports
 	cd $(FRONTEND_DIR) && yarn run dev
 
 test:
@@ -81,18 +82,19 @@ clean:
 clean-all: clean
 	rm -rf $(BACKEND_DIR)/node_modules $(FRONTEND_DIR)/node_modules
 
+# Полный цикл для Docker
 i: clean install test build
 	$(MAKE) up
 	@echo "$(YELLOW)Waiting for backend to start...$(NC)"
-	@sleep 7
+	@sleep 10
 	$(MAKE) docker-seed
 	@echo "$(GREEN)✅ System is ready!$(NC)"
 
-dev: clean-ports infra install seed backend
+dev: clean-ports infra install seed
+	@echo "$(GREEN)Infrastructure started. Launching backend...$(NC)"
 	cd $(BACKEND_DIR) && yarn run dev
 
-# Локальный запуск через PM2 (имитация продакшена)
 local-start: clean-ports infra install
 	cd $(BACKEND_DIR) && yarn run build
 	cd $(BACKEND_DIR) && npx pm2 start ecosystem.config.js
-	@echo "$(GREEN)✅ Started locally with PM2. Check 'npx pm2 status'$(NC)"
+	@echo "$(GREEN)✅ Started locally with PM2.$(NC)"
