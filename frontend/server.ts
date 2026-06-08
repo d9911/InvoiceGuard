@@ -192,8 +192,15 @@ function authMiddleware(req: any, res: any, next: any) {
 
 // --- Start Server ---
 async function startServer() {
+  const dev = process.env.NODE_ENV !== 'production'
+  const nextApp = next({ dev })
+  const handle = nextApp.getRequestHandler()
+
+  await nextApp.prepare()
+
   const app = express()
-  const PORT = 3000
+  const PORT_RUN = 3000
+  const PORT_FRONT = 5176
 
   // Capture raw bytes of JSON payloads for HMAC checking on webhooks
   app.use(express.json({
@@ -495,19 +502,17 @@ async function startServer() {
     res.json({ success: true, message: 'Merchant updated with new secret' })
   })
 
-  // --- Next.js Integration ---
-  const dev = process.env.NODE_ENV !== 'production'
-  const nextApp = next({ dev })
-  const handle = nextApp.getRequestHandler()
-
-  await nextApp.prepare()
-
-  app.all(/.*/, (req: any, res: any) => {
+  // --- Next.js Handler ---
+  app.all('*', (req, res) => {
     return handle(req, res)
   })
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`)
+  app.listen(PORT_RUN, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${PORT_RUN}`)
+  })
+
+  app.listen(PORT_FRONT, '0.0.0.0', () => {
+    console.log(`Frontend fully accessible on http://localhost:${PORT_FRONT}`)
   })
 }
 

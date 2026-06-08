@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from '@/shared/ui/Button'
+import { Button } from '@/src/shared/ui/Button'
 import { ShieldAlert, User, LogOut, CheckCircle2, Lock, Activity, ShieldCheck } from 'lucide-react'
 
 interface NavbarProps {
@@ -10,10 +10,13 @@ interface NavbarProps {
   is2FAEnabled: boolean
 }
 
-export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FAEnabled }: NavbarProps) {
+export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnabled }: NavbarProps) {
   return (
     <nav className="sticky top-0 w-full bg-white px-6 py-4 flex justify-between items-center z-50 border-b border-canvas-soft shadow-sm">
-      <div className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 select-none group" onClick={() => onNavigate('MainHome')}>
+      <div 
+        className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 select-none group"
+        onClick={() => onNavigate('MainHome')}
+      >
         <div className="w-9 h-9 bg-primary group-hover:bg-primary-active transition-all rounded-full flex items-center justify-center font-black text-ink shadow-sm relative">
           <ShieldCheck className="w-5 h-5 text-ink" />
           <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-positive rounded-full border-2 border-white" />
@@ -29,7 +32,9 @@ export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FA
       <div className="hidden md:flex items-center gap-8">
         <button
           onClick={() => onNavigate('MainHome')}
-          className={`text-sm font-semibold transition-colors hover:text-ink cursor-pointer ${currentPage === 'MainHome' ? 'text-ink border-b-2 border-primary pb-1' : 'text-body'}`}
+          className={`text-sm font-semibold transition-colors hover:text-ink cursor-pointer ${
+            currentPage === 'MainHome' ? 'text-ink border-b-2 border-primary pb-1' : 'text-body'
+          }`}
         >
           Transfers
         </button>
@@ -80,7 +85,7 @@ export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FA
                 {userEmail}
               </span>
             </div>
-
+            
             {/* Custom 2FA status indicator pill */}
             {is2FAEnabled ? (
               <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-primary-pale text-ink-deep text-xs font-semibold rounded-full border border-primary/20">
@@ -88,7 +93,7 @@ export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FA
                 2FA Secure
               </span>
             ) : (
-              <button
+              <button 
                 onClick={() => {
                   onNavigate('MainHome')
                   setTimeout(() => {
@@ -102,17 +107,29 @@ export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FA
               </button>
             )}
 
-            <Button variant="tertiary" size="sm" onClick={onLogout} className="text-xs py-1.5 px-3.5 flex items-center gap-1 border-ink/40">
+            <Button 
+              variant="tertiary" 
+              size="sm" 
+              onClick={onLogout}
+              className="text-xs py-1.5 px-3.5 flex items-center gap-1 border-ink/40"
+            >
               <LogOut className="w-3.5 h-3.5" />
               Sign Out
             </Button>
           </div>
         ) : (
           <>
-            <button onClick={() => onNavigate('SignIn')} className="text-sm font-semibold text-body hover:text-ink px-3 py-2 cursor-pointer transition-colors">
+            <button
+              onClick={() => onNavigate('SignIn')}
+              className="text-sm font-semibold text-body hover:text-ink px-3 py-2 cursor-pointer transition-colors"
+            >
               Log in
             </button>
-            <Button size="sm" onClick={() => onNavigate('SignUp')} className="text-sm py-2 px-4 shadow-sm">
+            <Button
+              size="sm"
+              onClick={() => onNavigate('SignUp')}
+              className="text-sm py-2 px-4 shadow-sm"
+            >
               Register
             </Button>
           </>
@@ -121,4 +138,4 @@ export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FA
     </nav>
   )
 }
-export default NavbarMain
+export default Navbar

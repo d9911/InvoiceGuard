@@ -1,24 +1,20 @@
-import React from 'react'
-import './globals.css'
+import type { Metadata } from 'next'
+import { ReactNode } from 'react'
+import '../index.css'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'InvoiceGuard',
-  description: 'Secure fintech invoice and payment collection platform',
+  description: 'Vivid aesthetic design meets state-of-the-art POS invoice signature security',
 }
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
-    <html lang="en">
-      <head>
-        <meta name="referrer" content="no-referrer" />
-      </head>
-      <body>
-        {children}
-      </body>
+    <html lang="en" className="h-full">
+      <body className="h-full bg-canvas-soft text-ink font-sans">{children}</body>
     </html>
   )
 }
