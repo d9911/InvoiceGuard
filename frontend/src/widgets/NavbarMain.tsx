@@ -10,7 +10,7 @@ interface NavbarProps {
   is2FAEnabled: boolean
 }
 
-export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnabled }: NavbarProps) {
+export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FAEnabled }: NavbarProps) {
   return (
     <nav className="sticky top-0 w-full bg-white px-6 py-4 flex justify-between items-center z-50 border-b border-canvas-soft shadow-sm">
       <div className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 select-none group" onClick={() => onNavigate('MainHome')}>
@@ -121,4 +121,5 @@ export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnab
     </nav>
   )
 }
-export default Navbar
+export default NavbarMain
+

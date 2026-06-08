@@ -2,8 +2,33 @@ import React, { useState, useEffect } from 'react'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
-import { ArrowUpDown, Check, Lock, ShieldCheck, Copy, CreditCard, RefreshCw, User, Activity, Wallet, Send, FileText, Timer, Globe, ShieldAlert } from 'lucide-react'
+import {
+  ArrowRight,
+  ArrowUpDown,
+  Check,
+  Lock,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Copy,
+  CreditCard,
+  Plus,
+  RefreshCw,
+  User,
+  Activity,
+  Wallet,
+  Send,
+  Share2,
+  FileText,
+  Building2,
+  Timer,
+  Globe,
+  ExternalLink,
+  ShieldAlert,
+} from 'lucide-react'
 import { IInvoice, IMerchant, I2FASetupResponse } from '@/types'
+import { useAuth } from '../../../shared/api/AuthContext'
 
 interface MainHomeProps {
   token: string | null
@@ -22,6 +47,7 @@ const CURRENCY_RATES: { [key: string]: number } = {
 }
 
 export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAEnabled }: MainHomeProps) {
+  const { apiFetch } = useAuth()
   // --- Hero Converter State ---
   const [sendAmount, setSendAmount] = useState<number>(1000)
   const [fromCurrency, setFromCurrency] = useState<string>('GBP')
@@ -81,7 +107,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
   const fetchInvoices = async () => {
     if (!token) return
     try {
-      const res = await fetch('/api/my-invoices', {
+      const res = await apiFetch('/my-invoices', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -89,9 +115,47 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       if (res.ok) {
         const list = await res.json()
         setInvoices(list)
+        localStorage.setItem(`invoice_guard_local_invoices_${userEmail}`, JSON.stringify(list))
         // Auto-select first invoice to populate details if none selected yet
         if (list.length > 0 && !selectedInvoice) {
           setSelectedInvoice(list[0])
+        }
+      } else if (res.status === 404) {
+        // Fallback for stateless external backends that do not have list endpoint
+        const localListStr = localStorage.getItem(`invoice_guard_local_invoices_${userEmail}`)
+        if (localListStr) {
+          const localList: IInvoice[] = JSON.parse(localListStr)
+          setInvoices(localList)
+          if (localList.length > 0 && !selectedInvoice) {
+            setSelectedInvoice(localList[0])
+          }
+
+          // Background update of each invoice status from the live backend
+          const updatedList = [...localList]
+          let changed = false
+          for (let i = 0; i < updatedList.length; i++) {
+            const inv = updatedList[i]
+            try {
+              const checkRes = await apiFetch(`/invoice/${inv.invoiceId}`)
+              if (checkRes.ok) {
+                const updatedInv = await checkRes.json()
+                if (updatedInv.status !== inv.status) {
+                  updatedList[i] = updatedInv
+                  changed = true
+                }
+              }
+            } catch (err) {
+              console.error('Failed to update invoice in background:', err)
+            }
+          }
+          if (changed) {
+            setInvoices(updatedList)
+            localStorage.setItem(`invoice_guard_local_invoices_${userEmail}`, JSON.stringify(updatedList))
+            if (selectedInvoice) {
+              const match = updatedList.find((i) => i.invoiceId === selectedInvoice.invoiceId)
+              if (match) setSelectedInvoice(match)
+            }
+          }
         }
       }
     } catch (e) {
@@ -174,7 +238,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
     const minorUnits = Math.round(floatVal * 100)
 
     try {
-      const res = await fetch('/api/invoice', {
+      const res = await apiFetch('/invoice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,6 +257,19 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       }
 
       showToast(`Success! Generated Invoice ${data.invoiceId}`)
+
+      // Save locally to support stateless backend configuration
+      try {
+        const localListStr = localStorage.getItem(`invoice_guard_local_invoices_${userEmail}`)
+        let localList: IInvoice[] = localListStr ? JSON.parse(localListStr) : []
+        if (!localList.some((i) => i.invoiceId === data.invoiceId)) {
+          localList = [data, ...localList]
+          localStorage.setItem(`invoice_guard_local_invoices_${userEmail}`, JSON.stringify(localList))
+        }
+      } catch (err) {
+        console.error('LocalStorage persistence failed:', err)
+      }
+
       await fetchInvoices()
       setSelectedInvoice(data)
 
@@ -212,7 +289,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
     setTfaSuccess('')
 
     try {
-      const res = await fetch('/api/auth/2fa/enable', {
+      const res = await apiFetch('/auth/2fa/enable', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -236,7 +313,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
     setTfaSuccess('')
 
     try {
-      const res = await fetch('/api/auth/2fa/verify', {
+      const res = await apiFetch('/auth/2fa/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +338,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
   // Dynamic status check
   const handleCheckLiveStatus = async (id: string) => {
     try {
-      const res = await fetch(`/api/invoice/${id}`)
+      const res = await apiFetch(`/invoice/${id}`)
       if (res.ok) {
         const inv = await res.json()
         setSelectedInvoice(inv)
@@ -339,6 +416,9 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       setIsSignaturesLoading(false)
     }
   }
+
+  const qrCodeSrc = tfaSetup ? tfaSetup.qrCode || (tfaSetup as any).qr || (tfaSetup as any).qrcode || (tfaSetup as any).qr_code || '' : ''
+  const secretKey = tfaSetup ? tfaSetup.secret || (tfaSetup as any).secretKey || (tfaSetup as any).secret_key || '' : ''
 
   return (
     <div className="space-y-0.5 bg-canvas-soft min-h-screen pb-16">
@@ -673,7 +753,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                         <div className="flex flex-col items-center p-4 bg-canvas-soft rounded-xl text-center">
                           <p className="text-[11px] text-body font-bold mb-3 uppercase tracking-wider">Scan with Authenticator App</p>
                           <img
-                            src={tfaSetup.qrCode}
+                            src={qrCodeSrc}
                             alt="Authenticator QR Code"
                             className="bg-white p-3 rounded-lg border border-ink/10 shadow-sm w-44 h-44 cursor-crosshair select-none"
                             referrerPolicy="no-referrer"
@@ -681,8 +761,8 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                           <div className="mt-4 text-center">
                             <span className="text-[10px] text-mute uppercase font-black tracking-widest block mb-1">Or Copy Secret Base32</span>
                             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-ink/10">
-                              <code className="font-mono text-xs font-black text-ink tracking-wider">{tfaSetup.secret}</code>
-                              <button onClick={() => handleCopyText(tfaSetup.secret, 'secret')} className="hover:text-primary transition-colors cursor-pointer text-mute" title="Copy 2FA key">
+                              <code className="font-mono text-xs font-black text-ink tracking-wider">{secretKey}</code>
+                              <button onClick={() => handleCopyText(secretKey, 'secret')} className="hover:text-primary transition-colors cursor-pointer text-mute" title="Copy 2FA key">
                                 {copiedSecret ? <Check className="w-3.5 h-3.5 text-positive" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
                             </div>
