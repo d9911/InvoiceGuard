@@ -17,9 +17,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
+  const [mounted, setMounted] = useState<boolean>(false)
 
   // Load context from local storage on mount
   useEffect(() => {
+    setMounted(true)
     try {
       const savedToken = localStorage.getItem('invoice_guard_token')
       const savedEmail = localStorage.getItem('invoice_guard_email')
@@ -102,18 +104,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return response
   }
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#e8ebe6] flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 bg-[#9fe870] rounded-full flex items-center justify-center shrink-0 shadow animate-pulse">
           <div className="w-4 h-4 rounded-full bg-[#0e0f0c]" />
         </div>
-        <div className="text-[#868685] text-sm font-semibold">Loading credentials context...</div>
+        <div className="text-[#868685] text-sm font-semibold">
+          Loading credentials context...
+        </div>
       </div>
     )
   }
 
-  return <AuthContext.Provider value={{ token, userEmail, is2FAEnabled, setIs2FAEnabled, login, logout, apiFetch }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ token, userEmail, is2FAEnabled, setIs2FAEnabled, login, logout, apiFetch }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

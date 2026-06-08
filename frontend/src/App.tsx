@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { NavbarMain } from '@/widgets/NavbarMain'
-import { MainHome } from '@/pages/MainHome/ui/MainHome'
-import { SignUp } from '@/pages/SignUp/ui/SignUp'
-import { SignIn } from '@/pages/SignIn/ui/SignIn'
+import { MainHome } from '@/views/MainHome/ui/MainHome'
+import { SignUp } from '@/views/SignUp/ui/SignUp'
+import { SignIn } from '@/views/SignIn/ui/SignIn'
 import { useAuth } from '@/shared/api/AuthContext'
 import { FooterMain } from '@/widgets/FooterMain'
 import { ShieldCheck } from 'lucide-react'
@@ -31,7 +31,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas-soft text-ink font-sans leading-none selection:bg-primaryselection:text-ink">
+    <div className="min-h-screen bg-canvas-soft text-ink font-sans leading-none selection:bg-primary selection:text-ink">
       {/* Sticky Navigation bar */}
       <NavbarMain userEmail={userEmail} currentPage={currentPage} onNavigate={setCurrentPage} onLogout={handleLogout} is2FAEnabled={is2FAEnabled} />
 

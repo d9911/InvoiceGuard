@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Card } from '@/shared/ui/Card'
-import { Button } from '@/shared/ui/Button'
-import { Input } from '@/shared/ui/Input'
+import { Card } from '@/src/shared/ui/Card'
+import { Button } from '@/src/shared/ui/Button'
+import { Input } from '@/src/shared/ui/Input'
 import { CheckCircle2, Lock, Mail, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react'
 
 interface SignUpProps {

@@ -122,4 +122,3 @@ export function NavbarMain({ userEmail, onNavigate, currentPage, onLogout, is2FA
   )
 }
 export default NavbarMain
-

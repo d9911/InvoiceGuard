@@ -1,5 +1,7 @@
+import React from 'react'
 import { ShieldCheck } from 'lucide-react'
-function FooterMain() {
+
+export function FooterMain() {
   return (
     <footer className="bg-ink text-canvas-soft py-16 px-6 mt-20 text-left border-t border-primary/10">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-sm">
@@ -62,5 +64,5 @@ function FooterMain() {
     </footer>
   )
 }
-export { FooterMain }
+
 export default FooterMain

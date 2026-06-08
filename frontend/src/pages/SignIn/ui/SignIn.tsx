@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Card } from '@/shared/ui/Card'
-import { Button } from '@/shared/ui/Button'
-import { Input } from '@/shared/ui/Input'
+import { Card } from '@/src/shared/ui/Card'
+import { Button } from '@/src/shared/ui/Button'
+import { Input } from '@/src/shared/ui/Input'
 import { Lock, Mail, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, KeyRound } from 'lucide-react'
 
 interface SignInProps {
@@ -75,7 +75,7 @@ export function SignIn({ onNavigate, onSuccess }: SignInProps) {
     try {
       const response = await fetch('/api/auth/2fa/login-verify', {
         method: 'POST',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${tempToken}`
         },
@@ -104,8 +104,8 @@ export function SignIn({ onNavigate, onSuccess }: SignInProps) {
         {/* Decorative bar */}
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-primary-active" />
 
-        <div
-          className="flex items-center gap-1.5 mb-6 text-mute hover:text-ink cursor-pointer transition-colors text-sm font-semibold inline-flex"
+        <div 
+          className="flex items-center gap-1.5 mb-6 text-mute hover:text-ink cursor-pointer transition-colors text-sm font-semibold inline-flex" 
           onClick={() => {
             if (requires2FA) {
               setRequires2FA(false)
