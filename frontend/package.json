@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev -p 5176",
     "build": "next build",
-    "start": "next start -p 5176",
+    "start": "next start -p 5176 -H 0.0.0.0",
     "clean": "rm -rf .next dist",
     "lint": "tsc --noEmit"
   },

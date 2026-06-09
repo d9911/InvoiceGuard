@@ -6,13 +6,9 @@ const __dirname = path.dirname(__filename)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js build output directory configured to .next to avoid conflict with express server build
   distDir: '.next',
-
-  // Disable browser source maps in production to optimize speed/security (like sourcemap: false in Vite)
   productionBrowserSourceMaps: false,
 
-  // Handle API proxy configuration
   async rewrites() {
     return [
       {
