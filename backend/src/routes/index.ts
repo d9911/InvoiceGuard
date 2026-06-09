@@ -6,6 +6,8 @@ import { LoginController } from '@/features/auth/login/controller';
 import { RegisterController } from '@/features/auth/register/controller';
 import { TwoFactorController } from '@/features/auth/2fa/controller';
 import { authMiddleware } from '@/shared/lib/authMiddleware';
+import { MyInvoicesController } from '@/features/invoices/myInvoices/controller';
+import { RefreshController } from '@/features/auth/refresh/controller';
 import { InvoiceRepository } from '@/entities/invoice/repository';
 import { MetricsProvider } from '@/app/providers/metrics.provider';
 
@@ -14,6 +16,8 @@ const router = Router();
 const loginCtrl = new LoginController();
 const registerCtrl = new RegisterController();
 const tfaCtrl = new TwoFactorController();
+const refreshCtrl = new RefreshController();
+const myInvoicesCtrl = new MyInvoicesController();
 const createInvoiceCtrl = new CreateInvoiceController();
 const processWebhookUseCase = new ProcessWebhookUseCase();
 const invoiceRepo = new InvoiceRepository();
@@ -26,7 +30,8 @@ router.post('/auth/register', (req, res) => registerCtrl.handle(req, res));
 router.post('/auth/2fa/enable', authMiddleware, (req, res) => tfaCtrl.enable(req, res));
 router.post('/auth/2fa/verify', authMiddleware, (req, res) => tfaCtrl.verify(req, res));
 router.post('/auth/2fa/login-verify', authMiddleware, (req, res) => tfaCtrl.verify(req, res));
-
+router.post('/auth/refresh', (req, res) => refreshCtrl.handle(req, res));
+router.get('/my-invoices', authMiddleware, (req, res) => myInvoicesCtrl.handle(req, res));
 // Invoices (Protected)
 router.post('/invoice', authMiddleware, (req, res) => createInvoiceCtrl.handle(req, res));
 

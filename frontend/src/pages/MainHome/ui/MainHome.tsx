@@ -106,20 +106,23 @@ export function MainHome({ accessToken, userEmail, onNavigate, is2FAEnabled, set
     if (!accessToken) return
     try {
       const res = await fetch('/api/my-invoices', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
-      if (res.ok) {
-        const list = await res.json()
-        setInvoices(list)
-        // Auto-select first invoice to populate details if none selected yet
-        if (list.length > 0 && !selectedInvoice) {
-          setSelectedInvoice(list[0])
-        }
+      if (!res.ok) {
+        console.error('Invoices request failed', res.status)
+        setInvoices([])
+        return
+      }
+      const data = await res.json()
+      const list: IInvoice[] = Array.isArray(data) ? data : Array.isArray(data.invoices) ? data.invoices : []
+      console.log('Fetched invoices:', list)
+      setInvoices(list)
+      if (list.length > 0 && !selectedInvoice) {
+        setSelectedInvoice(list[0])
       }
     } catch (e) {
       console.error('Failed to load user invoices:', e)
+      setInvoices([])
     }
   }
 
@@ -844,22 +847,22 @@ export function MainHome({ accessToken, userEmail, onNavigate, is2FAEnabled, set
                     <div className="flex justify-between items-start border-b border-canvas-soft pb-5 mb-5">
                       <div className="flex flex-col">
                         <span className="text-[10px] text-mute uppercase font-black tracking-widest leading-none mb-1">Selected Checkout View</span>
-                        <h4 className="text-2xl font-display font-black leading-none">{selectedInvoice.invoiceId}</h4>
+                        <h4 className="text-2xl font-display font-black leading-none">{selectedInvoice?.invoiceId}</h4>
                       </div>
 
                       <div className="text-right">
                         <span className="text-xs text-mute font-medium block">Invoice Status</span>
                         <div className="flex items-center gap-1.5 mt-1 justify-end">
                           <button
-                            onClick={() => handleCheckLiveStatus(selectedInvoice.invoiceId)}
+                            onClick={() => handleCheckLiveStatus(selectedInvoice?.invoiceId ?? '')}
                             className="p-1 hover:bg-canvas-soft rounded cursor-pointer text-mute hover:text-ink transition-colors"
                             title="Query Backend State"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                           </button>
-                          {selectedInvoice.status === 'pending' ? (
+                          {selectedInvoice?.status === 'pending' ? (
                             <span className="bg-warning/20 text-warning-deep text-xs font-black px-3 py-1 rounded-full border border-warning/15">PENDING ACCEPTANCE</span>
-                          ) : selectedInvoice.status === 'paid' ? (
+                          ) : selectedInvoice?.status === 'paid' ? (
                             <span className="bg-primary text-ink text-xs font-black px-3 py-1 rounded-full">✓ SETTLED FULLY</span>
                           ) : (
                             <span className="bg-negative text-white text-xs font-black px-3 py-1 rounded-full">FAILED CANCELLED</span>
@@ -873,25 +876,25 @@ export function MainHome({ accessToken, userEmail, onNavigate, is2FAEnabled, set
                         <div className="flex flex-col bg-canvas-soft p-5 rounded-xl border border-ink/5">
                           <span className="text-xs text-mute font-bold uppercase tracking-wider mb-1">Total Due</span>
                           <span className="text-4xl font-display font-black text-ink font-mono">
-                            {selectedInvoice.currency} {(selectedInvoice.amount / 100).toFixed(2)}
+                            {selectedInvoice?.currency} {(selectedInvoice?.amount / 100).toFixed(2)}
                           </span>
                         </div>
 
                         <div className="text-xs text-body space-y-1 bg-primary-pale/30 p-4 border border-primary/10 rounded-xl">
                           <div className="flex justify-between">
                             <span className="font-semibold text-ink">Associated Merchant:</span>
-                            <span>{selectedInvoice.merchantId}</span>
+                            <span>{selectedInvoice?.merchantId}</span>
                           </div>
                           <div className="flex justify-between font-mono">
                             <span>Transferred Rate Net (after 2.5% fee):</span>
                             <span className="font-bold text-ink-deep">
-                              {selectedInvoice.currency} {(selectedInvoice.amountToReceive / 100).toFixed(2)}
+                              {selectedInvoice?.currency} {(selectedInvoice?.amountToReceive / 100).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between pt-1 border-t border-ink/5 font-mono">
                             <span>Platform Fee Margin:</span>
                             <span className="text-mute">
-                              {selectedInvoice.currency} {(selectedInvoice.fee / 100).toFixed(2)}
+                              {selectedInvoice?.currency} {(selectedInvoice?.fee / 100).toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -908,7 +911,7 @@ export function MainHome({ accessToken, userEmail, onNavigate, is2FAEnabled, set
                         </div>
                         <div className="space-y-1.5 text-left font-mono">
                           <div className="text-[12px] text-mute uppercase">Billing Key ID</div>
-                          <div className="text-sm font-bold text-white tracking-wider select-all">{selectedInvoice.invoiceId}</div>
+                          <div className="text-sm font-bold text-white tracking-wider select-all">{selectedInvoice?.invoiceId}</div>
                         </div>
                         <div className="flex justify-between items-end">
                           <div className="text-left font-mono">
@@ -998,7 +1001,7 @@ export function MainHome({ accessToken, userEmail, onNavigate, is2FAEnabled, set
                           <div className="space-y-1.5 text-left">
                             <span className="text-primary-pale/70 block font-semibold text-[10px]">1. Constructed Body Parameters (rawBody):</span>
                             <pre className="bg-ink text-[11px] p-2.5 rounded border border-primary/15 text-white overflow-x-auto whitespace-pre-wrap select-all">
-                              {JSON.stringify({ invoiceId: selectedInvoice.invoiceId, status: webhookStatus })}
+                              {JSON.stringify({ invoiceId: selectedInvoice?.invoiceId, status: webhookStatus })}
                             </pre>
                           </div>
 

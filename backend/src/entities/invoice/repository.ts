@@ -16,4 +16,8 @@ export class InvoiceRepository {
       { returnDocument: 'after' }
     );
   }
+  async findByMerchantId(merchantId: string): Promise<IInvoice[]> {
+    return InvoiceModel.find({ merchantId }).exec();
+  }
 }
+

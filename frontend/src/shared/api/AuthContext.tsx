@@ -67,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRefreshToken(refreshToken)
     setUserEmail(email)
     setCookie('accessToken', accessToken)
-    setCookie('refreshToken', refreshToken)
+    if (refreshToken) {
+      setCookie('refreshToken', refreshToken)
+    }
     localStorage.setItem('invoice_guard_email', email)
   }
 
@@ -134,6 +136,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     }
   }, [])
+
+  // ---------- Auto refresh on start if access token missing ----------
+  useEffect(() => {
+    if (!accessToken && refreshToken) {
+      refreshAccessToken().then((newToken) => {
+        if (newToken) setAccessToken(newToken)
+      })
+    }
+  }, [refreshToken])
 
   // Sync 2FA flag
   useEffect(() => {
