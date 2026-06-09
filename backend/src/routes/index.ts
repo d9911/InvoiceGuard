@@ -25,7 +25,7 @@ router.post('/auth/register', (req, res) => registerCtrl.handle(req, res));
 // 2FA (Protected or Semi-protected)
 router.post('/auth/2fa/enable', authMiddleware, (req, res) => tfaCtrl.enable(req, res));
 router.post('/auth/2fa/verify', authMiddleware, (req, res) => tfaCtrl.verify(req, res));
-router.post('/auth/2fa/login-verify', (req, res) => tfaCtrl.verify(req, res));
+router.post('/auth/2fa/login-verify', authMiddleware, (req, res) => tfaCtrl.verify(req, res));
 
 // Invoices (Protected)
 router.post('/invoice', authMiddleware, (req, res) => createInvoiceCtrl.handle(req, res));

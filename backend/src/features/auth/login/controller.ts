@@ -15,7 +15,9 @@ export class LoginController {
       const data = loginSchema.parse(req.body);
       // Pass data as a single object to match useCase.execute(data: { email, password })
       const result = await this.useCase.execute(data);
-      return res.json(result);
+      // Provide `token` field for backward compatibility
+      const response = { token: result.accessToken, ...result };
+      return res.json(response);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.issues });

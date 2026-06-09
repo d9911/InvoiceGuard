@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from '@/src/shared/ui/Button'
+import { Button } from '@/shared/ui/Button'
 import { ShieldAlert, User, LogOut, CheckCircle2, Lock, Activity, ShieldCheck } from 'lucide-react'
 
 interface NavbarProps {
@@ -13,7 +13,7 @@ interface NavbarProps {
 export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnabled }: NavbarProps) {
   return (
     <nav className="sticky top-0 w-full bg-white px-6 py-4 flex justify-between items-center z-50 border-b border-canvas-soft shadow-sm">
-      <div 
+      <div
         className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 select-none group"
         onClick={() => onNavigate('MainHome')}
       >
@@ -85,7 +85,7 @@ export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnab
                 {userEmail}
               </span>
             </div>
-            
+
             {/* Custom 2FA status indicator pill */}
             {is2FAEnabled ? (
               <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-primary-pale text-ink-deep text-xs font-semibold rounded-full border border-primary/20">
@@ -93,7 +93,7 @@ export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnab
                 2FA Secure
               </span>
             ) : (
-              <button 
+              <button
                 onClick={() => {
                   onNavigate('MainHome')
                   setTimeout(() => {
@@ -107,9 +107,9 @@ export function Navbar({ userEmail, onNavigate, currentPage, onLogout, is2FAEnab
               </button>
             )}
 
-            <Button 
-              variant="tertiary" 
-              size="sm" 
+            <Button
+              variant="tertiary"
+              size="sm"
               onClick={onLogout}
               className="text-xs py-1.5 px-3.5 flex items-center gap-1 border-ink/40"
             >

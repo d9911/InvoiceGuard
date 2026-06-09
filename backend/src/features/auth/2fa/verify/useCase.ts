@@ -1,5 +1,6 @@
 import speakeasy from 'speakeasy';
 import { UserModel } from '@/entities/user/model';
+import { AuthProvider } from '@/app/providers/auth.provider';
 
 export class Verify2FAUseCase {
   async execute(userId: string, token: string) {
@@ -17,6 +18,9 @@ export class Verify2FAUseCase {
     user.isTwoFactorEnabled = true;
     await user.save();
 
-    return { success: true, message: '2FA enabled successfully' };
+    // Generate new access and refresh tokens for the user after successful 2FA
+    const accessToken = AuthProvider.signAccess({ userId: user._id, email: user.email });
+    const refreshToken = AuthProvider.signRefresh({ userId: user._id, email: user.email });
+    return { accessToken, refreshToken, email: user.email };
   }
 }

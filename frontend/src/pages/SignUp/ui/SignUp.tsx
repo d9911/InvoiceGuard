@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
-import { Card } from '@/src/shared/ui/Card'
-import { Button } from '@/src/shared/ui/Button'
-import { Input } from '@/src/shared/ui/Input'
-import { CheckCircle2, Lock, Mail, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { Input } from '@/shared/ui/Input'
+import { CheckCircle2, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react'
 
+// Updated SignUpProps with refresh token
 interface SignUpProps {
   onNavigate: (page: string) => void
-  onSuccess: (token: string, email: string) => void
+  onSuccess: (accessToken: string, refreshToken: string, email: string) => void
 }
 
 export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
@@ -36,7 +37,7 @@ export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       })
 
       const data = await response.json()
@@ -46,7 +47,7 @@ export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
 
       setFeedback('Account created successfully!')
       setTimeout(() => {
-        onSuccess(data.token, data.email)
+        onSuccess(data.accessToken, data.refreshToken, data.email)
       }, 1000)
     } catch (err: any) {
       setError(err.message)
@@ -70,12 +71,8 @@ export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
           <div className="w-12 h-12 bg-primary-pale text-ink rounded-full mx-auto flex items-center justify-center mb-4 border border-primary/20">
             <ShieldCheck className="w-6 h-6 text-ink" />
           </div>
-          <h2 className="text-3xl font-display font-black leading-none tracking-tight">
-            Create account
-          </h2>
-          <p className="text-sm text-body mt-2.5">
-            Join InvoiceGuard secure payments pool.
-          </p>
+          <h2 className="text-3xl font-display font-black leading-none tracking-tight">Create account</h2>
+          <p className="text-sm text-body mt-2.5">Join InvoiceGuard secure payments pool.</p>
         </div>
 
         {error && (
@@ -93,29 +90,11 @@ export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            label="Email address"
-            type="email"
-            placeholder="e.g. user@d9911.org"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="font-medium"
-          />
+          <Input label="Email address" type="email" placeholder="e.g. user@d9911.org" value={email} onChange={(e) => setEmail(e.target.value)} required className="font-medium" />
 
-          <Input
-            label="Create password"
-            type="password"
-            placeholder="min 5 characters (e.g. d9911)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="font-medium"
-          />
+          <Input label="Create password" type="password" placeholder="min 5 characters (e.g. d9911)" value={password} onChange={(e) => setPassword(e.target.value)} required className="font-medium" />
 
-          <div className="text-xs text-mute leading-relaxed text-left">
-            By registering, you agree to our automated 2FA policy protection, real-time logging, and signature encryption protocols.
-          </div>
+          <div className="text-xs text-mute leading-relaxed text-left">By registering, you agree to our automated 2FA policy protection, real-time logging, and signature encryption protocols.</div>
 
           <Button type="submit" className="w-full text-base py-4 font-bold" disabled={loading}>
             {loading ? (
@@ -131,10 +110,7 @@ export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
 
         <div className="mt-8 pt-6 border-t border-canvas-soft text-center text-sm text-body">
           <span>Already have an account? </span>
-          <button
-            onClick={() => onNavigate('SignIn')}
-            className="font-bold text-ink underline hover:text-mute transition-colors cursor-pointer"
-          >
+          <button onClick={() => onNavigate('SignIn')} className="font-bold text-ink underline hover:text-mute transition-colors cursor-pointer">
             Log In
           </button>
         </div>
@@ -142,4 +118,5 @@ export function SignUp({ onNavigate, onSuccess }: SignUpProps) {
     </div>
   )
 }
+
 export default SignUp

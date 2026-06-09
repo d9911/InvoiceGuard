@@ -16,11 +16,12 @@ export class LoginUseCase {
     if (user.isTwoFactorEnabled) {
       return { 
         requires2FA: true, 
-        tempToken: AuthProvider.sign({ userId: user._id, email: user.email, isPending2FA: true }) 
+        tempToken: AuthProvider.signAccess({ userId: user._id, email: user.email, isPending2FA: true }) 
       };
     }
 
-    const token = AuthProvider.sign({ userId: user._id, email: user.email });
-    return { token, email: user.email };
+    const accessToken = AuthProvider.signAccess({ userId: user._id, email: user.email });
+    const refreshToken = AuthProvider.signRefresh({ userId: user._id, email: user.email });
+    return { accessToken, refreshToken, email: user.email };
   }
 }

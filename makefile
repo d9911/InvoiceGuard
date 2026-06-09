@@ -98,3 +98,7 @@ local-start: clean-ports infra install
 	cd $(BACKEND_DIR) && yarn run build
 	cd $(BACKEND_DIR) && npx pm2 start ecosystem.config.js
 	@echo "$(GREEN)✅ Started locally with PM2.$(NC)"
+
+doc-front:
+	docker-compose build --no-cache $(FRONTEND_DIR)
+	docker-compose up -d $(FRONTEND_DIR)

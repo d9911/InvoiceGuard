@@ -1,16 +1,36 @@
 import React, { useState, useEffect } from 'react'
-import { Card } from '@/src/shared/ui/Card'
-import { Button } from '@/src/shared/ui/Button'
-import { Input } from '@/src/shared/ui/Input'
-import { 
-  ArrowRight, ArrowUpDown, Check, Lock, ShieldCheck, CheckCircle2, AlertCircle, 
-  AlertTriangle, Copy, CreditCard, Plus, RefreshCw, User, Activity, Wallet, 
-  Send, Share2, FileText, Building2, Timer, Globe, ExternalLink, ShieldAlert
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { Input } from '@/shared/ui/Input'
+import {
+  ArrowRight,
+  ArrowUpDown,
+  Check,
+  Lock,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Copy,
+  CreditCard,
+  Plus,
+  RefreshCw,
+  User,
+  Activity,
+  Wallet,
+  Send,
+  Share2,
+  FileText,
+  Building2,
+  Timer,
+  Globe,
+  ExternalLink,
+  ShieldAlert,
 } from 'lucide-react'
-import { IInvoice, IMerchant, I2FASetupResponse } from '@/src/types'
+import { IInvoice, IMerchant, I2FASetupResponse } from '@/types'
 
 interface MainHomeProps {
-  token: string | null
+  accessToken: string | null
   userEmail: string | null
   onNavigate: (page: string) => void
   is2FAEnabled: boolean
@@ -19,13 +39,13 @@ interface MainHomeProps {
 
 // Fixed exchange rates relative to GBP (1.00) for hero calculator
 const CURRENCY_RATES: { [key: string]: number } = {
-  GBP: 1.00,
+  GBP: 1.0,
   EUR: 1.16,
   USD: 1.25,
-  AUD: 1.88
+  AUD: 1.88,
 }
 
-export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAEnabled }: MainHomeProps) {
+export function MainHome({ accessToken, userEmail, onNavigate, is2FAEnabled, setIs2FAEnabled }: MainHomeProps) {
   // --- Hero Converter State ---
   const [sendAmount, setSendAmount] = useState<number>(1000)
   const [fromCurrency, setFromCurrency] = useState<string>('GBP')
@@ -42,13 +62,13 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
   // --- DB / Collection States ---
   const [invoices, setInvoices] = useState<IInvoice[]>([])
   const [selectedInvoice, setSelectedInvoice] = useState<IInvoice | null>(null)
-  
+
   // --- 2FA Activation State ---
   const [tfaSetup, setTfaSetup] = useState<I2FASetupResponse | null>(null)
   const [tfaInputCode, setTfaInputCode] = useState<string>('')
   const [tfaSuccess, setTfaSuccess] = useState<string>('')
   const [tfaError, setTfaError] = useState<string>('')
-  
+
   // --- Webhook Testing State ---
   const [webhookStatus, setWebhookStatus] = useState<'paid' | 'failed'>('paid')
   const [webhookLogs, setWebhookLogs] = useState<string[]>([])
@@ -83,12 +103,12 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
   // Fetch live invoices if authenticated
   const fetchInvoices = async () => {
-    if (!token) return
+    if (!accessToken) return
     try {
       const res = await fetch('/api/my-invoices', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       })
       if (res.ok) {
         const list = await res.json()
@@ -105,7 +125,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
   useEffect(() => {
     fetchInvoices()
-  }, [token])
+  }, [accessToken])
 
   // Set fresh random Webhook details on selection
   useEffect(() => {
@@ -147,7 +167,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
   // --- Form Handlers ---
   const handleHeroConverterAction = () => {
-    if (!token) {
+    if (!accessToken) {
       showToast('Welcome inside! Please sign up or login to start making transfers.')
       onNavigate('SignIn')
     } else {
@@ -163,7 +183,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
   // Create standard fintech Invoice
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!token) {
+    if (!accessToken) {
       showToast('Authentication token expired. Please login.')
       return
     }
@@ -182,13 +202,13 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           amount: minorUnits,
           currency: invoiceCurrency,
-          merchantId: selectedMerchant
-        })
+          merchantId: selectedMerchant,
+        }),
       })
 
       const data = await res.json()
@@ -199,12 +219,11 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       showToast(`Success! Generated Invoice ${data.invoiceId}`)
       await fetchInvoices()
       setSelectedInvoice(data)
-      
+
       // Scroll to detail portal below
       setTimeout(() => {
         document.getElementById('webhook-section')?.scrollIntoView({ behavior: 'smooth' })
       }, 200)
-
     } catch (e: any) {
       showToast(e.message)
     }
@@ -212,7 +231,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
   // 2FA setups
   const handleInit2FA = async () => {
-    if (!token) return
+    if (!accessToken) return
     setTfaError('')
     setTfaSuccess('')
 
@@ -220,8 +239,8 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       const res = await fetch('/api/auth/2fa/enable', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       })
       const data = await res.json()
       if (res.ok) {
@@ -236,7 +255,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
   }
 
   const handleVerify2FA = async () => {
-    if (!token || !tfaInputCode) return
+    if (!accessToken || !tfaInputCode) return
     setTfaError('')
     setTfaSuccess('')
 
@@ -245,9 +264,9 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ token: tfaInputCode })
+        body: JSON.stringify({ token: tfaInputCode }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -270,7 +289,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       if (res.ok) {
         const inv = await res.json()
         setSelectedInvoice(inv)
-        setInvoices(prev => prev.map(i => i.invoiceId === id ? inv : i))
+        setInvoices((prev) => prev.map((i) => (i.invoiceId === id ? inv : i)))
         showToast(`Invoice status: ${inv.status.toUpperCase()}`)
       }
     } catch (e) {
@@ -286,7 +305,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
     // Form payload matching Zod webhook validation contract
     const payloadObject = {
       invoiceId: selectedInvoice.invoiceId,
-      status: webhookStatus
+      status: webhookStatus,
     }
     const payloadStr = JSON.stringify(payloadObject)
 
@@ -299,20 +318,14 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       const payloadBuffer = encoder.encode(payloadStr)
 
       // 2. Import cryptographic Key representation
-      const CryptoKey = await window.crypto.subtle.importKey(
-        'raw', 
-        secretKeyBuffer, 
-        { name: 'HMAC', hash: 'SHA-256' }, 
-        false, 
-        ['sign']
-      )
+      const CryptoKey = await window.crypto.subtle.importKey('raw', secretKeyBuffer, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
 
       // 3. Perform Sign calculation
       const signatureBuffer = await window.crypto.subtle.sign('HMAC', CryptoKey, payloadBuffer)
-      
+
       // 4. Transform sig array byte elements to Hex blocks
       const signatureArray = Array.from(new Uint8Array(signatureBuffer))
-      const calculatedHexSignature = signatureArray.map(b => b.toString(16).padStart(2, '0')).join('')
+      const calculatedHexSignature = signatureArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 
       // 5. Send post requests representing the Bank Webhook callback
       const webhookResponse = await fetch('/api/webhook', {
@@ -321,13 +334,13 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
           'Content-Type': 'application/json',
           'X-Signature': calculatedHexSignature,
           'X-Timestamp': simulatedTimestamp.toString(),
-          'X-Nonce': simulatedNonce
+          'X-Nonce': simulatedNonce,
         },
-        body: payloadStr
+        body: payloadStr,
       })
 
       const outcome = await webhookResponse.json()
-      
+
       // Add debug traces inside local visual Logger
       const timestampString = new Date().toLocaleTimeString()
       let logMsg = `[${timestampString}] Webhook POST: StatusCode ${webhookResponse.status}. Outcome: ${JSON.stringify(outcome)}`
@@ -338,15 +351,14 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
         // Trigger live refresh
         await handleCheckLiveStatus(selectedInvoice.invoiceId)
       }
-      setWebhookLogs(prev => [logMsg, ...prev])
+      setWebhookLogs((prev) => [logMsg, ...prev])
       showToast(webhookResponse.ok ? 'Status synchronized!' : 'Verification failed!')
 
       // Rotate random Nonce for next sequence to bypass replay lock filters
       setSimulatedNonce('nonce_' + Math.random().toString(36).slice(2, 10))
-
     } catch (err: any) {
       console.error(err)
-      setWebhookLogs(prev => [`[${new Date().toLocaleTimeString()}] Crypto Error: ${err.message}`, ...prev])
+      setWebhookLogs((prev) => [`[${new Date().toLocaleTimeString()}] Crypto Error: ${err.message}`, ...prev])
     } finally {
       setIsSignaturesLoading(false)
     }
@@ -354,7 +366,6 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
   return (
     <div className="space-y-0.5 bg-canvas-soft min-h-screen pb-16">
-      
       {/* Toast alert system banner */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 max-w-sm bg-ink text-white font-semibold text-sm px-5 py-4 rounded-xl shadow-2xl border border-primary/20 flex items-center gap-3 z-[9999] animate-bounce">
@@ -370,26 +381,34 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
             <span className="w-2 h-2 bg-positive rounded-full animate-ping" />
             Vibrant Wise Aesthetic Pairing
           </div>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-display font-black leading-[0.95] tracking-tight text-ink">
-            Global money-transfer security.
-          </h1>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-display font-black leading-[0.95] tracking-tight text-ink">Global money-transfer security.</h1>
           <p className="text-lg sm:text-xl text-body mt-6 mb-8 font-sans leading-relaxed max-w-lg">
             InvoiceGuard utilizes premium HMAC signatures, unique transaction nonces, cryptographic 2FA shield codes, and fully real-time tracing logs. Simple, Scandinavian-sleek, and robust.
           </p>
-          
+
           <div className="flex flex-wrap gap-4">
-            <Button variant="primary" size="lg" className="font-bold cursor-pointer" onClick={() => {
-              if (userEmail) {
-                document.getElementById('merchant-section')?.scrollIntoView({ behavior: 'smooth' })
-              } else {
-                onNavigate('SignUp')
-              }
-            }}>
+            <Button
+              variant="primary"
+              size="lg"
+              className="font-bold cursor-pointer"
+              onClick={() => {
+                if (userEmail) {
+                  document.getElementById('merchant-section')?.scrollIntoView({ behavior: 'smooth' })
+                } else {
+                  onNavigate('SignUp')
+                }
+              }}
+            >
               {userEmail ? 'Create Live Invoice' : 'Open Free Account'}
             </Button>
-            <Button variant="tertiary" size="lg" className="font-bold cursor-pointer border-ink/30" onClick={() => {
-              document.getElementById('webhook-section')?.scrollIntoView({ behavior: 'smooth' })
-            }}>
+            <Button
+              variant="tertiary"
+              size="lg"
+              className="font-bold cursor-pointer border-ink/30"
+              onClick={() => {
+                document.getElementById('webhook-section')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
               Try Webhook Sandbox
             </Button>
           </div>
@@ -408,15 +427,15 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
               <div className="bg-canvas-soft p-5 rounded-xl border border-ink/10 flex justify-between items-center">
                 <div className="flex flex-col text-left space-y-1">
                   <label className="text-xs text-mute font-bold uppercase tracking-wider">You Send</label>
-                  <input 
-                    type="number" 
-                    value={sendAmount} 
+                  <input
+                    type="number"
+                    value={sendAmount}
                     onChange={(e) => setSendAmount(parseFloat(e.target.value) || 0)}
                     className="bg-transparent text-2xl font-black text-ink outline-none w-full"
                   />
                 </div>
-                <select 
-                  value={fromCurrency} 
+                <select
+                  value={fromCurrency}
                   onChange={(e) => setFromCurrency(e.target.value)}
                   className="bg-white text-ink text-lg font-black p-2.5 rounded-lg border border-ink/10 cursor-pointer outline-none shadow-sm"
                 >
@@ -429,7 +448,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
               {/* Middle swap decorative arrow button */}
               <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-[47%] z-10">
-                <button 
+                <button
                   onClick={handleSwapCurrencies}
                   className="w-10 h-10 bg-primary hover:bg-primary-active rounded-full flex items-center justify-center border-2 border-ink shadow transition-all hover:rotate-180 duration-300 cursor-pointer active:scale-90"
                   title="Swap currencies"
@@ -442,15 +461,10 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
               <div className="bg-canvas-soft p-5 rounded-xl border border-ink/10 flex justify-between items-center">
                 <div className="flex flex-col text-left space-y-1">
                   <label className="text-xs text-mute font-bold uppercase tracking-wider">Recipient Gets</label>
-                  <input 
-                    type="number" 
-                    value={convertedAmount} 
-                    readOnly
-                    className="bg-transparent text-2xl font-black text-mute outline-none w-full cursor-not-allowed"
-                  />
+                  <input type="number" value={convertedAmount} readOnly className="bg-transparent text-2xl font-black text-mute outline-none w-full cursor-not-allowed" />
                 </div>
-                <select 
-                  value={toCurrency} 
+                <select
+                  value={toCurrency}
                   onChange={(e) => setToCurrency(e.target.value)}
                   className="bg-white text-ink text-lg font-black p-2.5 rounded-lg border border-ink/10 cursor-pointer outline-none shadow-sm"
                 >
@@ -464,7 +478,9 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 
             <div className="mt-6 pt-5 border-t border-canvas-soft flex flex-col text-left space-y-3.5 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-mute font-medium flex items-center gap-1"><InfoCircle className="w-4 h-4" /> Calculated Rate:</span>
+                <span className="text-mute font-medium flex items-center gap-1">
+                  <InfoCircle className="w-4 h-4" /> Calculated Rate:
+                </span>
                 <span className="font-bold text-ink">
                   1 {fromCurrency} = {((CURRENCY_RATES[toCurrency] || 1) / (CURRENCY_RATES[fromCurrency] || 1)).toFixed(4)} {toCurrency}
                 </span>
@@ -475,10 +491,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
               </div>
             </div>
 
-            <Button 
-              className="w-full text-lg py-4 font-black tracking-tight mt-6"
-              onClick={handleHeroConverterAction}
-            >
+            <Button className="w-full text-lg py-4 font-black tracking-tight mt-6" onClick={handleHeroConverterAction}>
               Get Started with {toCurrency}
             </Button>
           </Card>
@@ -515,7 +528,9 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                 <Activity className="w-6 h-6 text-primary" />
               </div>
               <h4 className="text-xl font-display font-black text-primary mb-3">In-Memory Audit Log</h4>
-              <p className="text-sm text-primary-pale/80 leading-relaxed">NoSQL records are equipped with optimistic concurrency version locks and strict timestamp boundaries to stop billing race conditions.</p>
+              <p className="text-sm text-primary-pale/80 leading-relaxed">
+                NoSQL records are equipped with optimistic concurrency version locks and strict timestamp boundaries to stop billing race conditions.
+              </p>
             </Card>
           </div>
         </div>
@@ -531,8 +546,12 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
               Authenticate into the sandbox to generate invoices, configure secure two-factor permissions, and play inside the HMAC dynamic signature validation testing laboratory.
             </p>
             <div className="flex gap-4 justify-center">
-              <Button size="lg" onClick={() => onNavigate('SignUp')}>Create Sandbox Account</Button>
-              <Button variant="secondary" size="lg" onClick={() => onNavigate('SignIn')}>Sign In</Button>
+              <Button size="lg" onClick={() => onNavigate('SignUp')}>
+                Create Sandbox Account
+              </Button>
+              <Button variant="secondary" size="lg" onClick={() => onNavigate('SignIn')}>
+                Sign In
+              </Button>
             </div>
           </Card>
         </section>
@@ -541,7 +560,6 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
       {/* --- AUTHENTICATED SANDBOX WORKSPACE --- */}
       {userEmail && (
         <div className="max-w-7xl mx-auto px-6 space-y-12 py-10">
-          
           <div className="border-b border-ink/5 pb-6 text-left">
             <h2 className="text-4xl font-display font-black tracking-tight text-ink flex items-center gap-2">
               <Wallet className="w-10 h-10 text-primary" /> Financial Security Sandbox
@@ -552,10 +570,8 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
             {/* --- LEFT PORTFOLIO GRID: INVOICE GENERATOR (SPAN 5) --- */}
             <div id="merchant-section" className="lg:col-span-5 space-y-8">
-              
               {/* Creator Form */}
               <Card className="bg-white border border-ink/10 text-left">
                 <div className="flex justify-between items-center mb-6">
@@ -567,7 +583,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                 </div>
 
                 <form onSubmit={handleCreateInvoice} className="space-y-5">
-                  <Input 
+                  <Input
                     label="Amount (in standard decimal units)"
                     type="number"
                     step="0.01"
@@ -575,8 +591,8 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                     suffix={invoiceCurrency}
                     value={invoiceAmount}
                     onChange={(e) => {
-                      setSendAmount(parseFloat(e.target.value) || 0);
-                      setInvoiceAmount(e.target.value);
+                      setSendAmount(parseFloat(e.target.value) || 0)
+                      setInvoiceAmount(e.target.value)
                     }}
                     required
                   />
@@ -590,9 +606,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                           type="button"
                           onClick={() => setInvoiceCurrency(curr)}
                           className={`py-2 px-3 text-xs font-black rounded-lg border transition-all cursor-pointer ${
-                            invoiceCurrency === curr 
-                              ? 'bg-primary text-ink border-ink' 
-                              : 'bg-canvas-soft text-body border-transparent hover:border-ink/20'
+                            invoiceCurrency === curr ? 'bg-primary text-ink border-ink' : 'bg-canvas-soft text-body border-transparent hover:border-ink/20'
                           }`}
                         >
                           {curr}
@@ -652,17 +666,15 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                       <ShieldCheck className="w-6 h-6" />
                     </div>
                     <h4 className="text-lg font-black text-ink-deep leading-none">2FA Protection Active</h4>
-                    <p className="text-xs text-body leading-relaxed">
-                      Every session login is armored behind cryptographically linked TOTP variables. Security logs are synced with system rules.
-                    </p>
+                    <p className="text-xs text-body leading-relaxed">Every session login is armored behind cryptographically linked TOTP variables. Security logs are synced with system rules.</p>
                     <div className="text-left font-mono text-[10px] bg-white border border-ink/5 p-3 rounded-lg text-mute space-y-1">
                       <div>ENFORCEMENT: [STRICT_TOTP_MFA]</div>
                       <div>HASH: SHA1_160_OCTETS</div>
                       <div>TOLERANCE: +/- 30s DRIFT_WINDOW</div>
                     </div>
-                    <Button 
-                      variant="tertiary" 
-                      size="sm" 
+                    <Button
+                      variant="tertiary"
+                      size="sm"
                       className="border-negative/30 text-negative hover:bg-negative/5 w-full font-bold"
                       onClick={() => {
                         setIs2FAEnabled(false)
@@ -674,9 +686,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-xs text-body leading-relaxed">
-                      Shield your merchant vault. Integrate Google Authenticator or custom TOTP credentials to protect high-volume transfers.
-                    </p>
+                    <p className="text-xs text-body leading-relaxed">Shield your merchant vault. Integrate Google Authenticator or custom TOTP credentials to protect high-volume transfers.</p>
 
                     {!tfaSetup ? (
                       <Button variant="secondary" className="w-full font-bold flex items-center gap-2 justify-center" onClick={handleInit2FA}>
@@ -686,9 +696,9 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                       <div className="space-y-4 pt-4 border-t border-canvas-soft">
                         <div className="flex flex-col items-center p-4 bg-canvas-soft rounded-xl text-center">
                           <p className="text-[11px] text-body font-bold mb-3 uppercase tracking-wider">Scan with Authenticator App</p>
-                          <img 
-                            src={tfaSetup.qrCode} 
-                            alt="Authenticator QR Code" 
+                          <img
+                            src={tfaSetup.qrCode}
+                            alt="Authenticator QR Code"
                             className="bg-white p-3 rounded-lg border border-ink/10 shadow-sm w-44 h-44 cursor-crosshair select-none"
                             referrerPolicy="no-referrer"
                           />
@@ -696,25 +706,17 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                             <span className="text-[10px] text-mute uppercase font-black tracking-widest block mb-1">Or Copy Secret Base32</span>
                             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-ink/10">
                               <code className="font-mono text-xs font-black text-ink tracking-wider">{tfaSetup.secret}</code>
-                              <button 
-                                onClick={() => handleCopyText(tfaSetup.secret, 'secret')}
-                                className="hover:text-primary transition-colors cursor-pointer text-mute"
-                                title="Copy 2FA key"
-                              >
+                              <button onClick={() => handleCopyText(tfaSetup.secret, 'secret')} className="hover:text-primary transition-colors cursor-pointer text-mute" title="Copy 2FA key">
                                 {copiedSecret ? <Check className="w-3.5 h-3.5 text-positive" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
                             </div>
                           </div>
                         </div>
 
-                        {tfaError && (
-                          <div className="p-3 bg-negative-bg border border-negative/20 text-rose-200 text-xs rounded-lg">
-                            {tfaError}
-                          </div>
-                        )}
+                        {tfaError && <div className="p-3 bg-negative-bg border border-negative/20 text-rose-200 text-xs rounded-lg">{tfaError}</div>}
 
                         <div className="space-y-2">
-                          <Input 
+                          <Input
                             label="Type 6-Digit Verification Code"
                             type="text"
                             maxLength={6}
@@ -741,12 +743,10 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                   </div>
                 )}
               </Card>
-
             </div>
 
             {/* --- RIGHT PORTFOLIO GRID: INVOICES BOARD & WEBHOOK LAB (SPAN 7) --- */}
             <div id="invoices-section" className="lg:col-span-7 space-y-8 text-left">
-              
               {/* Invoices collection table view */}
               <Card className="bg-white border border-ink/10">
                 <div className="flex justify-between items-center mb-6">
@@ -778,17 +778,15 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                       </thead>
                       <tbody className="divide-y divide-ink/5">
                         {invoices.map((inv) => (
-                          <tr 
+                          <tr
                             key={inv.invoiceId}
                             onClick={() => setSelectedInvoice(inv)}
-                            className={`hover:bg-primary-pale/20 transition-colors cursor-pointer ${
-                              selectedInvoice?.invoiceId === inv.invoiceId ? 'bg-primary-pale/40 font-bold' : ''
-                            }`}
+                            className={`hover:bg-primary-pale/20 transition-colors cursor-pointer ${selectedInvoice?.invoiceId === inv.invoiceId ? 'bg-primary-pale/40 font-bold' : ''}`}
                           >
                             <td className="p-4 space-y-0.5">
                               <div className="font-mono text-xs text-ink flex items-center gap-1">
                                 {inv.invoiceId}
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleCopyText(inv.invoiceId, 'id')
@@ -796,11 +794,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                                   className="text-[10px] text-mute hover:text-ink cursor-pointer"
                                   title="Copy Code"
                                 >
-                                  {copiedInvoiceId === inv.invoiceId ? (
-                                    <Check className="text-positive w-3 h-3" />
-                                  ) : (
-                                    <Copy className="w-3 h-3" />
-                                  )}
+                                  {copiedInvoiceId === inv.invoiceId ? <Check className="text-positive w-3 h-3" /> : <Copy className="w-3 h-3" />}
                                 </button>
                               </div>
                               <span className="text-[10px] text-mute flex items-center gap-1 font-medium font-sans">
@@ -808,11 +802,11 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                                 {new Date(inv.createdAt || '').toLocaleString()}
                               </span>
                             </td>
-                            
+
                             <td className="p-4 text-ink font-mono font-bold text-sm">
                               {inv.currency} {(inv.amount / 100).toFixed(2)}
                             </td>
-                            
+
                             <td className="p-4 text-body font-mono text-xs">
                               {inv.currency} {(inv.fee / 100).toFixed(2)}
                             </td>
@@ -845,7 +839,6 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
               {/* Dynamic Invoice Detail & HMAC signature generator sandbox */}
               {selectedInvoice && (
                 <div id="webhook-section" className="space-y-8 animate-fade-in">
-                  
                   {/* Part A: Client billable checkout portal view */}
                   <Card className="bg-white border-2 border-ink">
                     <div className="flex justify-between items-start border-b border-canvas-soft pb-5 mb-5">
@@ -853,11 +846,11 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                         <span className="text-[10px] text-mute uppercase font-black tracking-widest leading-none mb-1">Selected Checkout View</span>
                         <h4 className="text-2xl font-display font-black leading-none">{selectedInvoice.invoiceId}</h4>
                       </div>
-                      
+
                       <div className="text-right">
                         <span className="text-xs text-mute font-medium block">Invoice Status</span>
                         <div className="flex items-center gap-1.5 mt-1 justify-end">
-                          <button 
+                          <button
                             onClick={() => handleCheckLiveStatus(selectedInvoice.invoiceId)}
                             className="p-1 hover:bg-canvas-soft rounded cursor-pointer text-mute hover:text-ink transition-colors"
                             title="Query Backend State"
@@ -883,7 +876,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                             {selectedInvoice.currency} {(selectedInvoice.amount / 100).toFixed(2)}
                           </span>
                         </div>
-                        
+
                         <div className="text-xs text-body space-y-1 bg-primary-pale/30 p-4 border border-primary/10 rounded-xl">
                           <div className="flex justify-between">
                             <span className="font-semibold text-ink">Associated Merchant:</span>
@@ -922,9 +915,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                             <div className="text-[10px] text-mute uppercase">System Channel</div>
                             <div className="text-xs font-semibold text-white">HMAC_SHA256_RING</div>
                           </div>
-                          <div className="w-9 h-6 bg-primary rounded-md opacity-95 flex items-center justify-center font-bold text-ink text-[10px]">
-                            IG
-                          </div>
+                          <div className="w-9 h-6 bg-primary rounded-md opacity-95 flex items-center justify-center font-bold text-ink text-[10px]">IG</div>
                         </div>
                       </div>
                     </div>
@@ -937,21 +928,19 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                         <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
                         <h4 className="text-lg font-display font-black text-primary uppercase tracking-wider">Dynamic POS Webhook Simulator</h4>
                       </div>
-                      <span className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded uppercase tracking-widest font-black">
-                        Developer Lab
-                      </span>
+                      <span className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded uppercase tracking-widest font-black">Developer Lab</span>
                     </div>
 
                     <p className="text-xs text-primary-pale/85 leading-relaxed font-sans">
-                      Fintech networks broadcast automated status webhooks once bank wires clear. Use our secure terminal to simulate the payment processor's signed <code className="text-primary font-mono bg-primary/5 px-1 rounded">POST /api/webhook</code> message!
+                      Fintech networks broadcast automated status webhooks once bank wires clear. Use our secure terminal to simulate the payment processor's signed{' '}
+                      <code className="text-primary font-mono bg-primary/5 px-1 rounded">POST /api/webhook</code> message!
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-mono">
-                      
                       {/* Left Block: Config Controls */}
                       <div className="space-y-4 bg-white/5 p-5 rounded-xl border border-primary/10">
                         <span className="text-[11px] text-primary font-black uppercase tracking-wider block">Simulator Parameters</span>
-                        
+
                         <div className="space-y-1">
                           <label className="text-primary-pale/75 font-semibold block">Target Endpoint Address:</label>
                           <div className="bg-ink p-2.5 rounded border border-primary/15 text-[11px] text-white overflow-x-auto select-all">
@@ -967,9 +956,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                                 key={val}
                                 onClick={() => setWebhookStatus(val as any)}
                                 className={`flex-1 py-1.5 px-3 rounded font-black uppercase text-[10px] transition-all cursor-pointer ${
-                                  webhookStatus === val 
-                                    ? 'bg-primary text-ink' 
-                                    : 'bg-white/5 text-primary-pale/60 hover:bg-white/10'
+                                  webhookStatus === val ? 'bg-primary text-ink' : 'bg-white/5 text-primary-pale/60 hover:bg-white/10'
                                 }`}
                               >
                                 {val === 'paid' ? 'Paid (Successful)' : 'Failed (Declined)'}
@@ -987,16 +974,18 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                             <span>X-Nonce Header:</span>
                             <span className="text-white text-right font-bold tracking-tight">{simulatedNonce}</span>
                           </div>
-                          
+
                           <div className="space-y-1">
                             <span className="block">Merchant Secret Config:</span>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={merchantSecret}
                               onChange={(e) => setMerchantSecret(e.target.value)}
                               className="bg-ink text-white border border-primary/15 rounded p-1.5 w-full text-xs font-mono focus:border-primary outline-none"
                             />
-                            <p className="text-[9px] text-mute leading-tight">Must match the merchant webhook's secret (<code className="text-primary">super_secret_key</code>) to successfully clear the controller checks.</p>
+                            <p className="text-[9px] text-mute leading-tight">
+                              Must match the merchant webhook's secret (<code className="text-primary">super_secret_key</code>) to successfully clear the controller checks.
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1005,7 +994,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                       <div className="space-y-4 bg-white/5 p-5 rounded-xl border border-primary/10 flex flex-col justify-between">
                         <div className="space-y-3.5">
                           <span className="text-[11px] text-primary font-black uppercase tracking-wider block">Live Payload & Signature Output</span>
-                          
+
                           <div className="space-y-1.5 text-left">
                             <span className="text-primary-pale/70 block font-semibold text-[10px]">1. Constructed Body Parameters (rawBody):</span>
                             <pre className="bg-ink text-[11px] p-2.5 rounded border border-primary/15 text-white overflow-x-auto whitespace-pre-wrap select-all">
@@ -1025,7 +1014,7 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                           </div>
                         </div>
 
-                        <Button 
+                        <Button
                           className="w-full h-11 bg-primary text-ink hover:bg-primary-active border-none text-xs font-black uppercase tracking-widest mt-4 cursor-pointer"
                           onClick={handleTriggerWebhookSimulator}
                           disabled={isSignaturesLoading}
@@ -1060,17 +1049,12 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
                       </div>
                     </div>
                   </Card>
-
                 </div>
               )}
-
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   )
 }
@@ -1078,16 +1062,16 @@ export function MainHome({ token, userEmail, onNavigate, is2FAEnabled, setIs2FAE
 // Simple Helper Info Icons to keep things zero-dependency
 function InfoCircle({ className = '' }: { className?: string }) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={`${className}`}
     >
       <circle cx="12" cy="12" r="10" />
